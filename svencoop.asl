@@ -34,11 +34,11 @@ init
 	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
 	//print("MD5Hash: " + MD5Hash.ToString()); //Lets DebugView show me the MD5Hash of the game executable
 
-    	if(MD5Hash == "EC7E5B6FD907C3BC7BA3B5257F30B32E"){
+    	if(MD5Hash == "C3E13874B743EE77DA380CC3FB1AFF76"){
 		version = "Steam";
 		vars.log("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
-	else if(MD5Hash == "E9C3AB688872DE80DBA91934AED9EC7F"){
+	else if(MD5Hash == "0792734230344D7182F9D6FD7783BA05"){
 		version = "v2017";
 		vars.log("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
