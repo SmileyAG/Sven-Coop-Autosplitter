@@ -8,7 +8,7 @@ state("svencoop")
 
 split 
 {
-   return current.loading == 1 && old.loading == 0;
+    return current.loading == 1 && old.loading == 0;
 }
 
 isLoading
