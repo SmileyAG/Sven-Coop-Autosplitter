@@ -1,5 +1,5 @@
 //LiveSplit - Edit Layout - Scriptable Auto Splitter
-//wtf why it's doesnt work
+//Thanks for supporting in code: BenInSweden
 
 state("svencoop", "Steam")
 {
@@ -9,11 +9,14 @@ state("svencoop", "Steam")
 state("svencoop", "v2017")
 {
     int loading : "hw.dll", 0x00051588, 0x0;
+    //offset 2017 opposing force stop
+    int op4finish : "client.dll", 0x001332C4, 0xCDC;
 }
 
 split 
 {
     return current.loading == 1 && old.loading == 0;
+    return current.op4finish == 1 && old.op4finish == 0;
 }
 
 isLoading
@@ -36,14 +39,14 @@ init
 
     	if(MD5Hash == "C3E13874B743EE77DA380CC3FB1AFF76"){
 		version = "Steam";
-		vars.log("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
+		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
 	else if(MD5Hash == "0792734230344D7182F9D6FD7783BA05"){
 		version = "v2017";
-		vars.log("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
+		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
     	else{
 		version = "UNDETECTED - Contact us!";
-		vars.log("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
+		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
 	}
 }
