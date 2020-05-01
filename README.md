@@ -4,3 +4,6 @@ Hello, I and ScriptedSnark created Autosplitter for game Sven Co-op. This is in 
 
 Authors:
 _Smiley and ScriptedSnark
+
+Thanks for supporting:
+BenInSweden
