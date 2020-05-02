@@ -9,11 +9,17 @@ state("svencoop", "Steam")
 state("svencoop", "v2017")
 {
     int loading : "hw.dll", 0x00051588, 0x0;
+    int op4finish : "client.dll", 0x00241438, 0x10, 0x174; // 2017 version OP4 finish
 }
 
 split 
 {
-    return current.loading == 1 && old.loading == 0;
+    if ( current.loading == 1 && old.loading == 0 ) {
+        return true;
+    }
+    if ( current.op4finish == 1 && old.op4finish == 0 ) {
+        return true;
+    }
 }
 
 isLoading
