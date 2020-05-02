@@ -9,7 +9,7 @@ state("svencoop", "Steam")
 state("svencoop", "v2017")
 {
     int loading : "hw.dll", 0x00051588, 0x0;
-    int op4end : "client.dll", 0x00241438, 0x10, 0x174; // 2017 version OP4 finish
+    int op4end : "client.dll", 0x00241438, 0x10, 0x174;
 }
 
 split 
