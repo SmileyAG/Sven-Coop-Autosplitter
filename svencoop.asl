@@ -1,5 +1,5 @@
 //LiveSplit - Edit Layout - Scriptable Auto Splitter
-//Thanks for supporting in code: BenInSweden
+//Thanks for supporting in code: BenInSweden and Chillu
 //Works only in 2017 version
 
 state("svencoop")
