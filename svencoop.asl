@@ -1,6 +1,8 @@
-//LiveSplit - Edit Layout - Scriptable Auto Splitter
-//Thanks for supporting in code: BenInSweden and Chillu
-//Works only in 2017 version
+//Sven Co-op LiveSplit Auto-Splitter - Edit Layout - Scriptable Auto Splitter
+//Thanks for supporting the project with code: BenInSweden and Chillu
+//Works only with Sven Co-op 15 April 2017 version
+
+//How to use: https://github.com/TheSmiley47/Sven-Coop-Autosplitter/blob/master/README.md
 
 state("svencoop")
 {
