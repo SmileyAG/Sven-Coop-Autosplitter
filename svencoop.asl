@@ -42,7 +42,7 @@ init
 		version = "v2017";
 		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
-    else{
+    	else{
 		version = "UNDETECTED";
 		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
 	}
