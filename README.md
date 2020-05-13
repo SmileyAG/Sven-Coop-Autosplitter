@@ -30,10 +30,10 @@ There's two ways to use this auto-splitter
 ## Features
  - [x] Auto-splitter
  - [x] End splits for blueshift, they hunger ep1, OP4
+ - [x] Version specific/Steam version or any other version than 15th April 2017
 
 ## Not implemented
  - [ ] End splitter for HL1, they hunger ep2-3
  - [ ] Reset splits
  - [ ] Gametimer (probably will never be a thing since host-client)
- - [ ] Version specific/Steam version or any other version than 15th April 2017
  - [ ] Start splitter
