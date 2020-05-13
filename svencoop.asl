@@ -50,7 +50,7 @@ init
 
 update
 {
-	// Disable the autosplitter if the version is incorrect
-	if (version.Contains("UNDETECTED"))
-		return false;
+    // Disable the autosplitter if the version is incorrect
+    if (version.Contains("UNDETECTED"))
+	return false;
 }
