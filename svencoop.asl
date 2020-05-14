@@ -53,6 +53,31 @@ isLoading
     return (current.loading == 1);
 }
 
+start
+{
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "hl_c01_a1") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "of1a1") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "ba_security1") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep1_01") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep2_00") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep3_00") {
+	return true;
+	}
+	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "dy_accident1") {
+	return true;
+	}
+}
+
 update
 {
     // Disable the autosplitter if the version is incorrect
