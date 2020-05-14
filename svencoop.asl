@@ -48,6 +48,11 @@ init
 	}
 }
 
+isLoading
+{
+    return (current.loading == 1);
+}
+
 update
 {
     // Disable the autosplitter if the version is incorrect
