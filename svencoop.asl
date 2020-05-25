@@ -12,6 +12,11 @@ state("svencoop", "v2017")
     string10 mapchecker : "hw.dll", 0x00060068, 0x0;
 }
 
+startup		// called when the autosplitter script itself starts
+{
+	settings.Add("AutoStart", false, "Use auto-start");
+}
+
 split 
 {
     if ( current.loading == 1 && old.loading == 0 ) {
@@ -55,25 +60,9 @@ isLoading
 
 start
 {
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "hl_c01_a1") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "of1a1") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "ba_security1") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep1_01") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep2_00") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "th_ep3_00") {
-	return true;
-	}
-	if (current.loading == 0 && old.loading == 1 && current.mapchecker == "dy_accident1") {
+	if (settings["AutoStart"])
+	{
+	if (current.loading == 0 && old.loading == 1)
 	return true;
 	}
 }
