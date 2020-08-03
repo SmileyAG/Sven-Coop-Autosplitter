@@ -15,6 +15,7 @@ state("svencoop", "v2017") // Offsets
 startup	// Start splitter
 {
     settings.Add("AutoStart", false, "Use auto-start");
+    settings.Add("OpposingForceEnd", false, "Use Opposing Force End split");	 
 }
 
 split // Auto-splitter
@@ -25,7 +26,9 @@ split // Auto-splitter
     if ( current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05" ) {
         return true;
     }
-    if ( current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b" ) {
+    if (settings["OpposingForceEnd"])
+    {
+    if ( current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b" ) 
         return true;
     }
 }
