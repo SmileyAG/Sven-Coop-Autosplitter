@@ -15,41 +15,46 @@ state("svencoop", "v2017") // Offsets
 startup	// Start splitter
 {
     settings.Add("AutoStart", false, "Use auto-start");
-    settings.Add("OpposingForceEnd", false, "Use Opposing Force End split");	 
+    settings.Add("OpposingForceEnd", false, "Use Opposing Force End split");
 }
 
 split // Auto-splitter
 {
-    if ( current.loading == 1 && old.loading == 0 ) {
+    if ( current.loading == 1 && old.loading == 0 ) 
+		return true;
+    
+    if ( current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05" ) 
         return true;
-    }
-    if ( current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05" ) {
-        return true;
-    }
+    
     if (settings["OpposingForceEnd"])
     {
-    if ( current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b" ) 
-        return true;
+    	if ( current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b" )
+		{
+        	return true;
+		}
     }
 }
 
 init // Version specific
 {
-    	byte[] exeMD5HashBytes = new byte[0];
+	byte[] exeMD5HashBytes = new byte[0];
 	using (var md5 = System.Security.Cryptography.MD5.Create())
 	{
 		using (var s = File.Open(modules.First().FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 		{
-			exeMD5HashBytes = md5.ComputeHash(s); 
-		} 
+			exeMD5HashBytes = md5.ComputeHash(s);
+		}
 	}
 	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
-	
-	if(MD5Hash == "0792734230344D7182F9D6FD7783BA05"){
+
+	if(MD5Hash == "0792734230344D7182F9D6FD7783BA05")
+	{
 		version = "v2017";
 		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
-    	else{
+
+    else
+	{
 		version = "UNDETECTED";
 		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
 	}
@@ -57,20 +62,22 @@ init // Version specific
 
 isLoading // Gametimer
 {
-    	return (current.loading == 1);
+	return (current.loading == 1);
 }
 
 start // Start splitter
 {
 	if (settings["AutoStart"])
 	{
-	if (current.loading == 0 && old.loading == 1)
-	return true;
+		if (current.loading == 0 && old.loading == 1)
+		{
+			return true;
+		}
 	}
 }
 
 update // Version specific
 {
-    	if (version.Contains("UNDETECTED"))
-	return false;
+	if (version.Contains("UNDETECTED"))
+		return false;
 }
