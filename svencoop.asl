@@ -12,7 +12,7 @@ state("svencoop", "v2017") // Offsets
     string10 map : "hw.dll", 0x00060068, 0x0;
 }
 
-startup	// Start splitter
+startup	// Settings
 {
     settings.Add("AutoStart", false, "Use auto-start");
     settings.Add("OpposingForceEnd", false, "Use Opposing Force End split");
