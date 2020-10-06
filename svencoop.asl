@@ -5,6 +5,9 @@ state("svencoop", "v2017") // Offsets
 {
 	int loading: "hw.dll", 0x00051588, 0x0;
 	string10 map: "hw.dll", 0x00060068, 0x0;
+	//float playerX:
+	//float playerY:
+	//float playerZ:
 	//int nihilanthhealth :
 	//int nihilanthirritation :
 	//int op4end:
@@ -55,7 +58,7 @@ init // Version specific
 	}
 	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
 
-	if(MD5Hash == "0792734230344D7182F9D6FD7783BA05")
+	if (MD5Hash == "0792734230344D7182F9D6FD7783BA05")
 	{
 		version = "v2017";
 		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
@@ -94,7 +97,8 @@ start // Start splitter
 
 reset // Reset splitter
 {
-	return ((vars.startmaps == current.map) && (old.map != vars.startmaps));
+	if (vars.startmaps == current.map && current.loading == 0 && old.loading == 1)
+		return true;
 }
 
 update // Version specific
