@@ -1,38 +1,46 @@
-//Sven Co-op LiveSplit Auto-Splitter - Edit Layout - Scriptable Auto Splitter
 //Thanks for supporting the project with code: BenInSweden and Chillu
-//Works only with Sven Co-op 15 April 2017 version
-
 //How to use: https://github.com/TheSmiley47/Sven-Coop-Autosplitter/blob/master/README.md
 
 state("svencoop", "v2017") // Offsets
 {
-    int loading : "hw.dll", 0x00051588, 0x0;
-    int op4end : "client.dll", 0x00241438, 0x4, 0x0, 0x174;
-    int thep1end : "hw.dll", 0x00002948, 0x398;
-    string10 map : "hw.dll", 0x00060068, 0x0;
+	int loading: "hw.dll", 0x00051588, 0x0;
+	string10 map: "hw.dll", 0x00060068, 0x0;
+	//int nihilanthhealth :
+	//int nihilanthirritation :
+	//int op4end:
+	int thep1end: "hw.dll", 0x00002948, 0x398;
+	//int thep2end:
+	//int thep3end:
 }
 
 startup	// Settings
 {
-    settings.Add("AutoStart", false, "Use auto-start");
-    settings.Add("OpposingForceEnd", false, "Use Opposing Force End split");
+	vars.startmaps = new List<string>() 
+	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};  
+                              	  	
+	settings.Add("Autostart", false, "Autostart");
+	settings.Add("AutostartILs", false, "Autostart for ILs");
 }
 
 split // Auto-splitter
 {
-    if ( current.loading == 1 && old.loading == 0 ) 
+	if (current.loading == 1 && old.loading == 0) 
 		return true;
+	
+	//if (current.nihilanthhealth <= 0 && old.nihilanthhealth >= 1 && current.nihilanthirritation == 3 && old.nihilanthirritation == 2 && current.map "c4a3")
+		//return true;
     
-    if ( current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05" ) 
-        return true;
-    
-    if (settings["OpposingForceEnd"])
-    {
-    	if ( current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b" )
-		{
-        	return true;
-		}
-    }
+	if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
+ 	    	return true;
+
+	if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
+            	return true;
+
+	//if (current.thep2end == 1 && old.thep1end == 0 && current.map == "") 
+            	//return true;
+
+	//if (current.thep3end == 1 && old.thep1end == 0 && current.map == "") 
+            	//return true;
 }
 
 init // Version specific
@@ -53,7 +61,7 @@ init // Version specific
 		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
 
-    else
+    	else
 	{
 		version = "UNDETECTED";
 		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
@@ -67,13 +75,26 @@ isLoading // Gametimer
 
 start // Start splitter
 {
-	if (settings["AutoStart"])
+	if (settings["Autostart"])
+	{
+		if (current.loading == 0 && old.loading == 1 && vars.startmaps == current.map)
+		{	
+			return true;
+		}
+	}
+
+	if (settings["AutostartILs"])
 	{
 		if (current.loading == 0 && old.loading == 1)
 		{
 			return true;
 		}
 	}
+}
+
+reset // Reset splitter
+{
+	return ((vars.startmaps == current.map) && (old.map != vars.startmaps));
 }
 
 update // Version specific
