@@ -7,13 +7,11 @@ state("svencoop", "v2017") // Offsets
 	string10 map: "hw.dll", 0x00060068, 0x0;
 	//float playerX:
 	//float playerY:
-	//float playerZ:
-	//int nihilanthhealth :
-	//int nihilanthirritation :
+	//float hl1bosshealth:
 	//int op4end:
 	int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
-	//int thep3end:
+	//float thep3bosshealth:
 }
 
 startup	// Settings
@@ -30,7 +28,7 @@ split // Auto-splitter
 	if (current.loading == 1 && old.loading == 0) 
 		return true;
 	
-	//if (current.nihilanthhealth <= 0 && old.nihilanthhealth >= 1 && current.nihilanthirritation == 3 && old.nihilanthirritation == 2 && current.map "c4a3")
+	//if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map "hl_c17")
 		//return true;
     
 	if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
@@ -39,10 +37,10 @@ split // Auto-splitter
 	if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
             	return true;
 
-	//if (current.thep2end == 1 && old.thep1end == 0 && current.map == "") 
+	//if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
             	//return true;
 
-	//if (current.thep3end == 1 && old.thep1end == 0 && current.map == "") 
+	//if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
             	//return true;
 }
 
