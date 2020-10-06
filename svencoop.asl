@@ -31,8 +31,8 @@ split // Auto-splitter
 	//if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map "hl_c17")
 		//return true;
     
-	if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
- 	    	return true;
+	//if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
+ 	    	//return true;
 
 	if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
             	return true;
