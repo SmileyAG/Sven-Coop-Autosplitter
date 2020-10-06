@@ -17,8 +17,9 @@ state("svencoop", "v2017") // Offsets
 startup	// Settings
 {
 	vars.startmaps = new List<string>() 
-	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};  
-                              	  	
+	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
+  
+	settings.Add("Reset", false, "Autoreset");                              	  	
 	settings.Add("Autostart", false, "Autostart");
 	settings.Add("AutostartILs", false, "Autostart for ILs");
 }
@@ -95,8 +96,13 @@ start // Start splitter
 
 reset // Reset splitter
 {
-	if (vars.startmaps == current.map && current.loading == 0 && old.loading == 1)
-		return true;
+	if (settings["Reset"])
+	{
+		if (vars.startmaps == current.map && current.loading == 0 && old.loading == 1)
+		{
+			return true;
+		}
+	}
 }
 
 update // Version specific
