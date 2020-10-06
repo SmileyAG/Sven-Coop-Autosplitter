@@ -79,7 +79,7 @@ start // Start splitter
 {
 	if (settings["Autostart"])
 	{
-		if (current.loading == 0 && old.loading == 1 && vars.startmaps == current.map)
+		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
 		{	
 			return true;
 		}
@@ -98,7 +98,7 @@ reset // Reset splitter
 {
 	if (settings["Reset"])
 	{
-		if (vars.startmaps == current.map && current.loading == 0 && old.loading == 1)
+		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
 		{
 			return true;
 		}
