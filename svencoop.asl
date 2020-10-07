@@ -7,6 +7,7 @@ state("svencoop", "v2017") // Offsets
 	string10 map: "hw.dll", 0x00060068, 0x0;
 	float playerX: "hw.dll", 0x0140BB60, 0x70;
 	float playerY: "hw.dll", 0x0140BB60, 0x74;
+	float playerZ: "hw.dll", 0x0008BA34, 0x4;
 	//float hl1bosshealth:
 	//int op4end:
 	int thep1end: "hw.dll", 0x00002948, 0x398;
@@ -43,6 +44,9 @@ split // Auto-splitter
 
 	//if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
             	//return true;
+
+	if (current.playerX >= 1787 && current.playerX <= 1992 && current.playerY >= -15 && current.playerY <= 122 && current.playerZ >= 63 && current.playerZ <= 463 && current.map == "uplink")
+		return true;
 }
 
 init // Version specific
