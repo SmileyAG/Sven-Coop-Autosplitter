@@ -5,8 +5,8 @@ state("svencoop", "v2017") // Offsets
 {
 	int loading: "hw.dll", 0x00051588, 0x0;
 	string10 map: "hw.dll", 0x00060068, 0x0;
-	//float playerX:
-	//float playerY:
+	float playerX: "hw.dll", 0x0140BB60, 0x70;
+	float playerY: "hw.dll", 0x0140BB60, 0x74;
 	//float hl1bosshealth:
 	//int op4end:
 	int thep1end: "hw.dll", 0x00002948, 0x398;
@@ -77,6 +77,9 @@ isLoading // Gametimer
 
 start // Start splitter
 {
+	if (current.playerX >= -2111 && current.playerX <= -1983 && current.playerY >= 295 && current.playerY <= 712 && current.map == "uplink")
+		return true;
+
 	if (settings["Autostart"])
 	{
 		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
