@@ -8,11 +8,11 @@ state("svencoop", "v2017") // Offsets
 	float playerX: "hw.dll", 0x0140BB60, 0x70;
 	float playerY: "hw.dll", 0x0140BB60, 0x74;
 	float playerZ: "hw.dll", 0x0008BA34, 0x4;
-	//float hl1bosshealth:
+	float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
 	//int op4end:
 	int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
-	//float thep3bosshealth:
+	float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
 }
 
 startup	// Settings
@@ -30,8 +30,8 @@ split // Auto-splitter
 	if (current.loading == 1 && old.loading == 0) 
 		return true;
 	
-	//if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map "hl_c17")
-		//return true;
+	if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map == "hl_c17")
+		return true;
     
 	//if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
  	    	//return true;
@@ -42,8 +42,8 @@ split // Auto-splitter
 	//if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
             	//return true;
 
-	//if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
-            	//return true;
+	if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
+            	return true;
 
 	if (current.playerX >= 1787 && current.playerX <= 1992 && current.playerY >= -15 && current.playerY <= 122 && current.playerZ >= 63 && current.playerZ <= 463 && current.map == "uplink")
 		return true;
