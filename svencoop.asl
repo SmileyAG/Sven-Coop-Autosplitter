@@ -7,16 +7,16 @@ state("svencoop", "v2017") // Offsets
 	string10 map: "hw.dll", 0x00060068, 0x0;
 	float playerX: "hw.dll", 0x0140BB60, 0x70;
 	float playerY: "hw.dll", 0x0140BB60, 0x74;
-	float playerZ: "hw.dll", 0x0008BA34, 0x4;
 	float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
 	//int op4end:
 	int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
 	float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
+	//float uplinkgarghealth: "hw.dll", 
 }
 
 startup	// Settings
-{
+{	
 	vars.startmaps = new List<string>() 
 	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
   
@@ -45,8 +45,8 @@ split // Auto-splitter
 	if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
             	return true;
 
-	if (current.playerX >= 1787 && current.playerX <= 1992 && current.playerY >= -15 && current.playerY <= 122 && current.playerZ >= 63 && current.playerZ <= 463 && current.map == "uplink")
-		return true;
+	//if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
+		//return true;
 }
 
 init // Version specific
@@ -81,7 +81,7 @@ isLoading // Gametimer
 
 start // Start splitter
 {
-	if (current.playerX >= -2111 && current.playerX <= -1983 && current.playerY >= 295 && current.playerY <= 712 && current.map == "uplink")
+	if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
 		return true;
 
 	if (settings["Autostart"])
