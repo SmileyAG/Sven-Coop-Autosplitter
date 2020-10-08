@@ -12,7 +12,7 @@ state("svencoop", "v2017") // Offsets
 	int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
 	float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
-	//float uplinkgarghealth: "hw.dll", 
+	float uplinkgarghealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
 }
 
 startup	// Settings
@@ -45,8 +45,8 @@ split // Auto-splitter
 	if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
             	return true;
 
-	//if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
-		//return true;
+	if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
+		return true;
 }
 
 init // Version specific
