@@ -122,7 +122,6 @@ isLoading // Gametimer
 
 start // Start splitter
 {
-
 	if (settings["Uplinkstart"])
 	{
 		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
