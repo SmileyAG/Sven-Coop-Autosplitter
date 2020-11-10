@@ -20,6 +20,13 @@ startup	// Settings
 	vars.startmaps = new List<string>() 
 	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
   
+	settings.Add("HL1stop", false, "Autostop for Half-Life");
+	//settings.Add("OP4stop", false, "Autostop for Opposing Force");
+	settings.Add("EP1stop", false, "Autostop for They Hunger EP1");
+	//settings.Add("EP2stop", false, "Autostop for They Hunger EP2");
+	settings.Add("EP3stop", false, "Autostop for They Hunger EP3");
+	settings.Add("Uplinkstart", false, "Autostart for Uplink"); 
+	settings.Add("Uplinkstop", false, "Autostop for Uplink"); 
 	settings.Add("Reset", false, "Autoreset");                              	  	
 	settings.Add("Autostart", false, "Autostart");
 	settings.Add("AutostartILs", false, "Autostart for ILs");
@@ -30,23 +37,57 @@ split // Auto-splitter
 	if (current.loading == 1 && old.loading == 0) 
 		return true;
 	
-	if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map == "hl_c17")
-		return true;
+	if (settings["HL1stop"])
+	{
+		if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map == "hl_c17")
+		{
+			return true;
+		}
+	}
     
-	//if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
- 	    	//return true;
+	/* 
+	if (settings["OP4stop"])
+	{
+		if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
+		{
+ 	    		return true;
+		}
+	}
+	*/
 
-	if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
-            	return true;
-
-	//if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
-            	//return true;
-
-	if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07") 
-            	return true;
-
-	if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
-		return true;
+	if (settings["EP1stop"])
+	{
+		if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
+		{
+            		return true;
+		}
+	}
+	
+	/*
+	if (settings["EP2stop"])
+	{
+		if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
+		{
+            		return true;
+		}
+	}
+	*/
+	
+	if (settings["EP3stop"])
+	{
+		if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07")
+		{
+            		return true;
+		}
+	}
+	
+	if (settings["Uplinkstop"])
+	{
+		if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
+		{
+			return true;
+		}
+	}
 }
 
 init // Version specific
@@ -81,8 +122,13 @@ isLoading // Gametimer
 
 start // Start splitter
 {
-	if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
-		return true;
+	if (settings["Uplinkstart"])
+	{
+		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
+		{
+			return true;
+		}
+	}
 
 	if (settings["Autostart"])
 	{
