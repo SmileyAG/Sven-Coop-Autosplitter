@@ -29,11 +29,11 @@ There's two ways to use this auto-splitter
 
 ## Features
  - [x] Auto-splitter
- - [x] End splits for blueshift, they hunger ep1, OP4
- - [x] Version specific/Steam version or any other version than 15th April 2017
+ - [x] End splitter for HL1, They Hunger EP1 and EP3, Uplink
+ - [x] Version specific
  - [x] Gametimer
--  [x] Start splitter
+ - [x] Reset splits
+ - [x] Start splitter
 
 ## Not implemented
- - [ ] End splitter for HL1, they hunger ep2-3
- - [ ] Reset splits
+ - [ ] End splitter for OP4, They Hunger EP2
