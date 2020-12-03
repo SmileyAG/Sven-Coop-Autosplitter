@@ -1,165 +1,70 @@
 //Thanks for supporting the project with code: BenInSweden and Chillu
 //How to use: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
 
-state("svencoop", "v2017") // Offsets
-{
-	int loading: "hw.dll", 0x00051588, 0x0;
-	string10 map: "hw.dll", 0x00060068, 0x0;
-	float playerX: "hw.dll", 0x0140BB60, 0x70;
-	float playerY: "hw.dll", 0x0140BB60, 0x74;
-	float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
-	//int op4end:
-	int thep1end: "hw.dll", 0x00002948, 0x398;
-	//int thep2end:
-	float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
-	float uplinkgarghealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
+state("svencoop", "v2017") {
+	int loading            : "hw.dll", 0x16E5110;
+	string10 map           : "hw.dll", 0xD3B110;
+	float playerX          : "hw.dll", 0x140BB60, 0x70;
+	float playerY          : "hw.dll", 0x140BB60, 0x74;
+	float hl1BossHealth    : "hw.dll", 0xD15D10, 0x74, 0x4, 0xACC;
+	//int op4End             :
+	int thep1End           : "hw.dll", 0x2948, 0x398;
+	//int thep2End           :
+	float thep3BossHealth  : "hw.dll", 0xD15E10, 0x398, 0x4, 0xACC;
+	float upLinkGargHealth : "hw.dll", 0xD15D90, 0x74, 0x294, 0x7A8;
 }
 
-startup	// Settings
-{	
-	vars.startmaps = new List<string>() 
-	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
-  
-	settings.Add("HL1stop", false, "Autostop for Half-Life");
-	//settings.Add("OP4stop", false, "Autostop for Opposing Force");
-	settings.Add("EP1stop", false, "Autostop for They Hunger EP1");
-	//settings.Add("EP2stop", false, "Autostop for They Hunger EP2");
-	settings.Add("EP3stop", false, "Autostop for They Hunger EP3");
-	settings.Add("Uplinkstart", false, "Autostart for Uplink"); 
-	settings.Add("Uplinkstop", false, "Autostop for Uplink"); 
-	settings.Add("Reset", false, "Autoreset");                              	  	
-	settings.Add("Autostart", false, "Autostart");
-	settings.Add("AutostartILs", false, "Autostart for ILs");
+startup {
+	vars.startMaps = new HashSet<string> {"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
+
+	settings.Add("HL1split", false, "Split for Half-Life");
+	//settings.Add("OP4split", false, "Split for Opposing Force");
+	settings.Add("EP1split", false, "Split for They Hunger EP1");
+	//settings.Add("EP2split", false, "Split for They Hunger EP2");
+	settings.Add("EP3split", false, "Split for They Hunger EP3");
+	settings.Add("upLinkStart", false, "Start timer for Uplink");
+	settings.Add("upLinkSplit", false, "Split for Uplink");
+	settings.Add("start", false, "Start timer");
+	settings.Add("startILs", false, "Start timer for ILs");
 }
 
-split // Auto-splitter
-{
-	if (current.loading == 1 && old.loading == 0) 
-		return true;
-	
-	if (settings["HL1stop"])
-	{
-		if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map == "hl_c17")
-		{
-			return true;
-		}
-	}
-    
-	/* 
-	if (settings["OP4stop"])
-	{
-		if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
-		{
- 	    		return true;
-		}
-	}
-	*/
-
-	if (settings["EP1stop"])
-	{
-		if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
-		{
-            		return true;
-		}
-	}
-	
-	/*
-	if (settings["EP2stop"])
-	{
-		if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
-		{
-            		return true;
-		}
-	}
-	*/
-	
-	if (settings["EP3stop"])
-	{
-		if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07")
-		{
-            		return true;
-		}
-	}
-	
-	if (settings["Uplinkstop"])
-	{
-		if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
-		{
-			return true;
-		}
+init {
+	switch (modules.First().ModuleMemorySize) {
+		case 774144: version = "v2017"; break;
+		default: version = "UNDETECTED"; break;
 	}
 }
 
-init // Version specific
-{
-	byte[] exeMD5HashBytes = new byte[0];
-	using (var md5 = System.Security.Cryptography.MD5.Create())
-	{
-		using (var s = File.Open(modules.First().FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-		{
-			exeMD5HashBytes = md5.ComputeHash(s);
-		}
-	}
-	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
-
-	if (MD5Hash == "0792734230344D7182F9D6FD7783BA05")
-	{
-		version = "v2017";
-		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
-	}
-
-    	else
-	{
-		version = "UNDETECTED";
-		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
-	}
+update {
+	if (version == "UNDETECTED") return false;
 }
 
-isLoading // Gametimer
-{
-	return (current.loading == 1);
+start {
+	var inPos = (Func<float, float, float, float, bool>) ((xMin, xMax, yMin, yMax) => {
+		return current.playerX >= xMin && current.playerX <= xMax && current.playerY >= yMin && current.playerY <= yMax ? true : false;
+	});
+
+	return
+		settings["upLinkStart"] && inPos(-2092, -2004, 524, 720) && current.map == "uplink" ||
+		settings["start"] && current.loading && !old.loading && vars.startMaps.Contains(current.map) ||
+		settings["startILs"] && !current.loading && old.loading;
 }
 
-start // Start splitter
-{
-	if (settings["Uplinkstart"])
-	{
-		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
-		{
-			return true;
-		}
-	}
-
-	if (settings["Autostart"])
-	{
-		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
-		{	
-			return true;
-		}
-	}
-
-	if (settings["AutostartILs"])
-	{
-		if (current.loading == 0 && old.loading == 1)
-		{
-			return true;
-		}
-	}
+split {
+	return
+		current.loading && !old.loading ||
+		settings["HL1split"]    && current.hl1BossHealth    <= 0    && old.hl1BossHealth    >= 1 && current.map == "hl_c17" ||
+		//settings["OP4split"]    && current.op4End           == 1    && old.op4End           == 0 && current.map == "of6a4b" ||
+		settings["EP1split"]    && current.thep1End         == 1    && old.thep1End         == 0 && current.map == "th_ep1_05" ||
+		//settings["EP2split"]    && current.thep2End         == 1    && old.thep2End         == 0 && current.map == "th_ep2_04" ||
+		settings["EP3split"]    && current.thep3BossHealth  <= 0    && old.thep3BossHealth  >= 1 && current.map == "th_ep3_07" ||
+		settings["upLinkSplit"] && current.upLinkGargHealth == 1000 && old.upLinkGargHealth == 0 && current.map == "uplink";
 }
 
-reset // Reset splitter
-{
-	if (settings["Reset"])
-	{
-		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
-		{
-			return true;
-		}
-	}
+reset {
+	return !current.loading && old.loading && vars.startMaps.Contains(current.map);
 }
 
-update // Version specific
-{
-	if (version.Contains("UNDETECTED"))
-		return false;
+isLoading {
+	return current.loading;
 }
