@@ -1,5 +1,5 @@
 //Thanks for supporting the project with code: BenInSweden and Chillu
-//How to use: https://github.com/TheSmiley47/Sven-Coop-Autosplitter/blob/master/README.md
+//How to use: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
 
 state("svencoop", "v2017") // Offsets
 {
