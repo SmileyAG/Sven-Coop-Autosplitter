@@ -20,7 +20,7 @@ There's two ways to use this auto-splitter
  3. Press the button "Activate" beside "Autosplitter for Sven Co-op"
 
 **Second way:**
- 1. Download https://github.com/TheSmiley47/Sven-Coop-Autosplitter/blob/master/svencoop.asl
+ 1. Download https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/svencoop.asl
  2. Rightclick on livesplit
  3. Edit layout
  4. Add (pluss sign) -> Control - Scriptable Auto Splitter
