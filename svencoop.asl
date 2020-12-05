@@ -213,5 +213,4 @@ reset // Reset splitter
 update // Version specific
 {   
     vars.watchList.UpdateAll(game);
-    print(vars.nihiHP.Current.ToString("0.0000"));
 }
