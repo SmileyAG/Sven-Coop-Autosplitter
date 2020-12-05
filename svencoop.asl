@@ -2,7 +2,7 @@
 //How to use: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
 
 state("svencoop", "v2017") {
-	int loading            : "hw.dll", 0x51588, 0x0;
+	bool loading            : "hw.dll", 0x51588, 0x0;
 	string10 map           : "hw.dll", 0x60068, 0x0;
 	float playerX          : "hw.dll", 0x140BB60, 0x70;
 	float playerY          : "hw.dll", 0x140BB60, 0x74;
