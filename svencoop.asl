@@ -3,8 +3,8 @@
 
 state("svencoop", "v2017") // Offsets
 {
-	int loading: "hw.dll", 0x00051588, 0x0;
-	string10 map: "hw.dll", 0x00060068, 0x0;
+	//int loading: "hw.dll", 0x00051588, 0x0;
+	//string10 map: "hw.dll", 0x00060068, 0x0;
 	float playerX: "hw.dll", 0x0140BB60, 0x70;
 	float playerY: "hw.dll", 0x0140BB60, 0x74;
 	float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
@@ -34,12 +34,12 @@ startup	// Settings
 
 split // Auto-splitter
 {
-	if (current.loading == 1 && old.loading == 0) 
+	if (vars.loading.Current == 1 && vars.loading.Old == 0) 
 		return true;
 	
 	if (settings["HL1stop"])
 	{
-		if (current.hl1bosshealth <= 0 && old.hl1bosshealth >= 1 && current.map == "hl_c17")
+		if (vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17")
 		{
 			return true;
 		}
@@ -48,7 +48,7 @@ split // Auto-splitter
 	/* 
 	if (settings["OP4stop"])
 	{
-		if (current.op4end == 1 && old.op4end == 0 && current.map == "of6a4b")
+		if (current.op4end == 1 && old.op4end == 0 && vars.map.Current == "of6a4b")
 		{
  	    		return true;
 		}
@@ -57,16 +57,16 @@ split // Auto-splitter
 
 	if (settings["EP1stop"])
 	{
-		if (current.thep1end == 1 && old.thep1end == 0 && current.map == "th_ep1_05") 
+		if (current.thep1end == 1 && old.thep1end == 0 && vars.map.Current == "th_ep1_05") 
 		{
-            		return true;
+            return true;
 		}
 	}
 	
 	/*
 	if (settings["EP2stop"])
 	{
-		if (current.thep2end == 1 && old.thep2end == 0 && current.map == "th_ep2_04") 
+		if (current.thep2end == 1 && old.thep2end == 0 && vars.map.Current == "th_ep2_04") 
 		{
             		return true;
 		}
@@ -75,15 +75,15 @@ split // Auto-splitter
 	
 	if (settings["EP3stop"])
 	{
-		if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && current.map == "th_ep3_07")
+		if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && vars.map.Current == "th_ep3_07")
 		{
-            		return true;
+            return true;
 		}
 	}
 	
 	if (settings["Uplinkstop"])
 	{
-		if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && current.map == "uplink")
+		if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && vars.map.Current == "uplink")
 		{
 			return true;
 		}
@@ -107,24 +107,76 @@ init // Version specific
 		version = "v2017";
 		print("Detected game version: " + version + " - MD5Hash: " + MD5Hash);
 	}
-
-    	else
+    else
 	{
 		version = "UNDETECTED";
 		print("UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
 	}
+
+    var curMapSig = new SigScanTarget(2,  
+        "80 3D ?? ?? ?? ?? 00",     // CMP byte ptr [map],0x0
+        "74 ??", 
+        "68 ?? ?? ?? ??",
+        "50");
+
+    curMapSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+
+    var curLoadingSig = new SigScanTarget(13,  
+        "68 ?? ?? ?? ??",
+        "D9 1D ?? ?? ?? ??",
+        "C7 05 ?? ?? ?? ?? 01 00 00 00"); // MOV dword ptr [0x05f44af0],0x1
+
+    curLoadingSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+
+    var nihiHPBaseSig = new SigScanTarget(5,  
+        "83 ?? 38",
+        "??",
+        "68 ?? ?? ?? ??", // PUSH entry_point
+        "E8 ?? ?? ?? ??",
+        "83 C4 08"); 
+
+    nihiHPBaseSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x10; // 2838: this address is always 10 bytes away from the actual one
+
+    var profiler = Stopwatch.StartNew();
+
+    // 2838: init process scanners, limit scope to hw.dll only
+    ProcessModuleWow64Safe hw = modules.FirstOrDefault(x => x.ModuleName.ToLower() == "hw.dll");
+    var hwScanner = new SignatureScanner(game, hw.BaseAddress, hw.ModuleMemorySize);
+
+    IntPtr curMapPtr = hwScanner.Scan(curMapSig);
+    IntPtr curLoadingPtr = hwScanner.Scan(curLoadingSig);
+    IntPtr nihiHPBasePtr = hwScanner.Scan(nihiHPBaseSig);
+
+    var nihiHPDP = new DeepPointer(nihiHPBasePtr, 0x74, 0x4, 0xACC);
+
+    print(curMapPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find current map ptr!") : ("[SIGSCANNING] Found current map ptr at 0x" + curMapPtr.ToString("X")));
+    print(curLoadingPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find loading ptr!") : ("[SIGSCANNING] Found loading ptr at 0x" + curLoadingPtr.ToString("X")));
+    print(nihiHPBasePtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find nihi's hp entry ptr!") : ("[SIGSCANNING] Found nihi's hp entry ptr at 0x" + nihiHPBasePtr.ToString("X")));
+
+    print("[SIGSCANNING] Signature scanning complete after " + profiler.ElapsedMilliseconds * 0.001f + " seconds");
+    profiler.Stop();
+
+    vars.map = new StringWatcher(curMapPtr, 10);
+    vars.loading = new MemoryWatcher<int>(curLoadingPtr);
+    vars.nihiHP = new MemoryWatcher<float>(nihiHPDP);
+    vars.watchList = new MemoryWatcherList () {
+        vars.map,
+        vars.loading,
+        vars.nihiHP
+    };
+
 }
 
 isLoading // Gametimer
 {
-	return (current.loading == 1);
+	return (vars.loading.Current == 1);
 }
 
 start // Start splitter
 {
 	if (settings["Uplinkstart"])
 	{
-		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && current.map == "uplink")
+		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && vars.map.Current == "uplink")
 		{
 			return true;
 		}
@@ -132,7 +184,7 @@ start // Start splitter
 
 	if (settings["Autostart"])
 	{
-		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
+		if (vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
 		{	
 			return true;
 		}
@@ -140,7 +192,7 @@ start // Start splitter
 
 	if (settings["AutostartILs"])
 	{
-		if (current.loading == 0 && old.loading == 1)
+		if (vars.loading.Current == 0 && vars.loading.Old == 1)
 		{
 			return true;
 		}
@@ -151,7 +203,7 @@ reset // Reset splitter
 {
 	if (settings["Reset"])
 	{
-		if (current.loading == 0 && old.loading == 1 && vars.startmaps.Contains(current.map))
+		if (vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
 		{
 			return true;
 		}
@@ -159,7 +211,7 @@ reset // Reset splitter
 }
 
 update // Version specific
-{
-	if (version.Contains("UNDETECTED"))
-		return false;
+{   
+    vars.watchList.UpdateAll(game);
+    print(vars.nihiHP.Current.ToString("0.0000"));
 }
