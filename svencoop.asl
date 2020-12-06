@@ -57,7 +57,7 @@ split // Auto-splitter
 
 	if (settings["EP1stop"])
 	{
-		if (vars.thep1end.Crruent == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05") 
+		if (vars.thep1end.Current == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05") 
 		{
             return true;
 		}
