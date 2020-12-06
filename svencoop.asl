@@ -5,14 +5,14 @@ state("svencoop", "v2017") // Offsets
 {
 	//int loading: "hw.dll", 0x00051588, 0x0;
 	//string10 map: "hw.dll", 0x00060068, 0x0;
-	float playerX: "hw.dll", 0x0140BB60, 0x70;
-	float playerY: "hw.dll", 0x0140BB60, 0x74;
-	float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
+	//float playerX: "hw.dll", 0x0140BB60, 0x70;
+	//float playerY: "hw.dll", 0x0140BB60, 0x74;
+	//float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
 	//int op4end:
-	int thep1end: "hw.dll", 0x00002948, 0x398;
+	//int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
-	float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
-	float uplinkgarghealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
+	//float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
+	//float uplinkgarghealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
 }
 
 startup	// Settings
@@ -57,7 +57,7 @@ split // Auto-splitter
 
 	if (settings["EP1stop"])
 	{
-		if (current.thep1end == 1 && old.thep1end == 0 && vars.map.Current == "th_ep1_05") 
+		if (vars.thep1end.Crruent == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05") 
 		{
             return true;
 		}
@@ -75,7 +75,7 @@ split // Auto-splitter
 	
 	if (settings["EP3stop"])
 	{
-		if (current.thep3bosshealth <= 0 && old.thep3bosshealth >= 1 && vars.map.Current == "th_ep3_07")
+		if (vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old >= 1 && vars.map.Current == "th_ep3_07")
 		{
             return true;
 		}
@@ -83,7 +83,7 @@ split // Auto-splitter
 	
 	if (settings["Uplinkstop"])
 	{
-		if (current.uplinkgarghealth == 1000 && old.uplinkgarghealth == 0 && vars.map.Current == "uplink")
+		if (vars.uplinkgarghealth.Current == 1000 && vars.uplinkgarghealth.Old == 0 && vars.map.Current == "uplink")
 		{
 			return true;
 		}
@@ -137,6 +137,29 @@ init // Version specific
 
     nihiHPBaseSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x10; // 2838: this address is always 10 bytes away from the actual one
 
+    var plyrPosSig = new SigScanTarget(22, 
+		"C7 05 ?? ?? ?? ?? 01 00 00 00",
+		"E8 ?? ?? ?? ??",
+		"FF 15 ?? ?? ?? ??",
+		"68 ?? ?? ?? ??"); 
+
+    plyrPosSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x38;
+
+	var thep1endSig = new SigScanTarget(2, 
+		"F6 05 ?? ?? ?? ?? 02", // MOV byte ptr [thep1end],0x2
+		"74 ??",
+		"68 00 03 00 00"); 
+
+    thep1endSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+
+	var thep3endSig = new SigScanTarget(11, 
+		"8? ?? ?? ?? ?? ??",
+		"83 ?? 38",
+		"??",
+		"68 ?? ?? ?? ??"); // PUSH entry_point
+
+    thep3endSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : (ptr + 0x110);
+
     var profiler = Stopwatch.StartNew();
 
     // 2838: init process scanners, limit scope to hw.dll only
@@ -146,12 +169,22 @@ init // Version specific
     IntPtr curMapPtr = hwScanner.Scan(curMapSig);
     IntPtr curLoadingPtr = hwScanner.Scan(curLoadingSig);
     IntPtr nihiHPBasePtr = hwScanner.Scan(nihiHPBaseSig);
+	IntPtr plyrXPosPtr = hwScanner.Scan(plyrPosSig);
+	IntPtr plyrYPosPtr = plyrXPosPtr + 0x4;
+	IntPtr thep1endPtr = hwScanner.Scan(thep1endSig);
+	IntPtr thep3endPtr = hwScanner.Scan(thep3endSig);
 
     var nihiHPDP = new DeepPointer(nihiHPBasePtr, 0x74, 0x4, 0xACC);
+	var thep3endDP = new DeepPointer(thep3endPtr, 0x398, 0x4, 0xACC);
+	var uplinkgarghealthDP = new DeepPointer(thep3endPtr - 0x80, 0x74, 0x294, 0x7A8);
 
-    print(curMapPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find current map ptr!") : ("[SIGSCANNING] Found current map ptr at 0x" + curMapPtr.ToString("X")));
+    print(curMapPtr == IntPtr.Zero ?  "[SIGSCANNING] Couldn't find current map ptr!" : ("[SIGSCANNING] Found current map ptr at 0x" + curMapPtr.ToString("X")));
     print(curLoadingPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find loading ptr!") : ("[SIGSCANNING] Found loading ptr at 0x" + curLoadingPtr.ToString("X")));
     print(nihiHPBasePtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find nihi's hp entry ptr!") : ("[SIGSCANNING] Found nihi's hp entry ptr at 0x" + nihiHPBasePtr.ToString("X")));
+	print(plyrXPosPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find player's pos ptr!") : ("[SIGSCANNING] Found player's pos ptr at 0x" + plyrXPosPtr.ToString("X")));
+	print(thep1endPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find thep1end ptr!") : ("[SIGSCANNING] Found thep1end ptr at 0x" + thep1endPtr.ToString("X")));
+	print(thep3endPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find thep3end entry ptr!") : ("[SIGSCANNING] Found thep3end entry ptr at 0x" + thep3endPtr.ToString("X")));
+	print(thep3endPtr == IntPtr.Zero ? ("[SIGSCANNING] Couldn't find uplinkgarghealth entry ptr!") : ("[SIGSCANNING] Found uplinkgarghealth entry ptr at 0x" + (thep3endPtr - 0x80).ToString("X")));
 
     print("[SIGSCANNING] Signature scanning complete after " + profiler.ElapsedMilliseconds * 0.001f + " seconds");
     profiler.Stop();
@@ -159,10 +192,21 @@ init // Version specific
     vars.map = new StringWatcher(curMapPtr, 10);
     vars.loading = new MemoryWatcher<int>(curLoadingPtr);
     vars.nihiHP = new MemoryWatcher<float>(nihiHPDP);
+	vars.playerX = new MemoryWatcher<float>(plyrXPosPtr); 
+	vars.playerY = new MemoryWatcher<float>(plyrYPosPtr);
+	vars.thep1end = new MemoryWatcher<int>(thep1endPtr);
+	vars.thep3bosshealth = new MemoryWatcher<float>(thep3endDP);
+	vars.uplinkgarghealthDP = new MemoryWatcher<float>(uplinkgarghealthDP); 
+
     vars.watchList = new MemoryWatcherList () {
         vars.map,
         vars.loading,
-        vars.nihiHP
+        vars.nihiHP,
+		vars.playerX,
+		vars.playerY,
+		vars.thep1end,
+		vars.thep3bosshealth,
+		vars.uplinkgarghealthDP
     };
 
 }
@@ -176,7 +220,7 @@ start // Start splitter
 {
 	if (settings["Uplinkstart"])
 	{
-		if (current.playerX >= -2092 && current.playerX <= -2004 && current.playerY >= 524 && current.playerY <= 720 && vars.map.Current == "uplink")
+		if (vars.playerX.Current >= -2092 && vars.playerX.Current <= -2004 && vars.playerY.Current >= 524 && vars.playerY.Current <= 720 && vars.map.Current == "uplink")
 		{
 			return true;
 		}
@@ -210,7 +254,8 @@ reset // Reset splitter
 	}
 }
 
-update // Version specific
+update
 {   
     vars.watchList.UpdateAll(game);
+	//print(vars.uplinkgarghealthDP.Current.ToString("0.00"));
 }
