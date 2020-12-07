@@ -293,7 +293,7 @@ init // Version specific
 		vars.thep3bosshealth,
 		vars.uplinkgarghealth,
 		vars.nihiHP,
-		vars.state,
+		vars.state
     };
 
 	// 2838: this is for special actions that should only be done on game load
