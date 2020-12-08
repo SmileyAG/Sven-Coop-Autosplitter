@@ -12,7 +12,7 @@ state("svencoop", "v2017") // Offsets
 	//int thep1end: "hw.dll", 0x00002948, 0x398;
 	//int thep2end:
 	//float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
-	//float uplinkgarghealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
+	//float uplinkVentHealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
 }
 
 startup	// Settings
@@ -21,9 +21,9 @@ startup	// Settings
 	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
   
 	settings.Add("HL1stop", false, "Autostop for Half-Life");
-	//settings.Add("OP4stop", false, "Autostop for Opposing Force");
+	settings.Add("OP4stop", false, "Autostop for Opposing Force");
 	settings.Add("EP1stop", false, "Autostop for They Hunger EP1");
-	//settings.Add("EP2stop", false, "Autostop for They Hunger EP2");
+	settings.Add("EP2stop", false, "Autostop for They Hunger EP2");
 	settings.Add("EP3stop", false, "Autostop for They Hunger EP3");
 	settings.Add("Uplinkstart", false, "Autostart for Uplink"); 
 	settings.Add("Uplinkstop", false, "Autostop for Uplink"); 
@@ -31,19 +31,34 @@ startup	// Settings
 	settings.Add("Autostart", false, "Autostart");
 	settings.Add("AutostartILs", false, "Autostart for ILs");
 
-	// 2838: basic offsets for some elements in entvars typedef
+	// 2838: offsets for some elements in entvars typedef
     vars.entVarsOffs = new Dictionary<string, int>() {
         {"health"               	, 0x1E0},
         {"xPos"             		, 0x88},
 		{"yPos"             		, 0x8C},
 		{"zPos"             		, 0x90},
+		{"xVel"             		, 0xA0},
+		{"yVel"             		, 0xA4},
+		{"zVel"             		, 0xA8},
 		{"max_health"             	, 0x230},
+		{"target"					, 0x248},
 		{"targetname"				, 0x24C},
 		{"classname"				, 0x80},
 		{"globalname"				, 0x84},
 		{"modelname"				, 0x130},
-		{"privatedata"				, 0x7C}
+		{"framerate"				, 0x1B0},
+		{"privatedata"				, 0x7C},
+		{"avelocityX"				, 0xDC},
+		{"avelocityY"				, 0xE0},
+		{"avelocityZ"				, 0xE4}
     };
+
+	// 2838: bools for deciding whether we should print debug info for various parts of the splitter
+	vars.debugSwitches = new Dictionary<string, bool>() {
+		{"VERSIONING"				, true},
+		{"ENTFINDING"				, true},
+		{"SIGSCANNING"				, true},
+	};
 
 	// 2838: how many times should we retry finding an entity before stopping?
 	vars.entFindRetries = 3;
@@ -53,7 +68,8 @@ startup	// Settings
 init // Version specific
 {
 	Action<string, string> printtag = (tag, msg) => {
-		print("[" + tag + "] " + msg);
+		if (vars.debugSwitches[tag])
+			print("[" + tag + "] " + msg);
 	};
 
 	vars.printtag = printtag;
@@ -118,14 +134,6 @@ init // Version specific
 
     thep1endSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
-	var thep3endSig = new SigScanTarget(11, 
-		"8? ?? ?? ?? ?? ??",
-		"83 ?? 38",
-		"??",
-		"68 ?? ?? ?? ??"); // PUSH entry_point
-
-    thep3endSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : (ptr + 0x110);
-
 	var entListSig = new SigScanTarget(14, 
 		"0f ?? ?? ?? ?? ??",
 		"?? ??",
@@ -181,11 +189,6 @@ init // Version specific
 	IntPtr statePtr = hwScanner.Scan(stateSig);
 	IntPtr globalPtr = hwScanner.Scan(globalSig);
 
-	//IntPtr thep3endPtr = hwScanner.Scan(thep3endSig);
-    //var nihiHPDP = new DeepPointer(nihiHPBasePtr, 0x74, 0x4, 0xACC);
-	//var thep3endDP = new DeepPointer(thep3endPtr, 0x398, 0x4, 0xACC);
-	//var uplinkgarghealthDP = new DeepPointer(thep3endPtr - 0x80, 0x74, 0x294, 0x7A8);
-
 	printtag("SIGSCANNING", (entListPtr == IntPtr.Zero ? ("Couldn't find entList ptr!") : ("Found entList ptr at 0x" + entListPtr.ToString("X"))));
 	printtag("SIGSCANNING", (globalPtr == IntPtr.Zero ? ("Couldn't find globals ptr!") : ("Found globals ptr at 0x" + globalPtr.ToString("X"))));
 	printtag("SIGSCANNING", (pStringBasePtr == IntPtr.Zero ? ("Couldn't find stringbase ptr!") : ("Found stringbase ptr at 0x" + pStringBasePtr.ToString("X"))));
@@ -194,28 +197,39 @@ init // Version specific
 	printtag("SIGSCANNING", (statePtr == IntPtr.Zero ? ("Couldn't find state ptr!") : ("Found state ptr at 0x" + statePtr.ToString("X"))));
 	printtag("SIGSCANNING", (plyrXPosPtr == IntPtr.Zero ? ("Couldn't find player's pos ptr!") : ("Found player's pos ptr at 0x" + plyrXPosPtr.ToString("X"))));
 	printtag("SIGSCANNING", (thep1endPtr == IntPtr.Zero ? ("Couldn't find thep1end ptr!") : ("Found thep1end ptr at 0x" + thep1endPtr.ToString("X"))));
-	//printtag("SIGSCANNING", (nihiHPBasePtr == IntPtr.Zero ? ("Couldn't find nihi's hp entry ptr!") : ("Found nihi's hp entry ptr at 0x" + nihiHPBasePtr.ToString("X"))));
-	//printtag("SIGSCANNING", (thep3endPtr == IntPtr.Zero ? ("Couldn't find thep3end entry ptr!") : ("Found thep3end entry ptr at 0x" + thep3endPtr.ToString("X"))));
-	//printtag("SIGSCANNING", (thep3endPtr == IntPtr.Zero ? ("Couldn't find uplinkgarghealth entry ptr!") : ("Found uplinkgarghealth entry ptr at 0x" + (thep3endPtr - 0x80).ToString("X"))));
-
-    printtag("SIGSCANNING", "Signature scanning complete after " + profiler.ElapsedMilliseconds * 0.001f + " seconds");
+    
+	printtag("SIGSCANNING", "Signature scanning complete after " + profiler.ElapsedMilliseconds * 0.001f + " seconds");
     profiler.Stop();
 
+	// PURPOSE: find the distance between 2 points in space in the XY plane
+	Func<float, float, float, float, float> DistanceXY = (x, y, x1, y1) => {
+		return (float)(Math.Sqrt((x - x1)*(x - x1) + (y - y1)*(y - y1)));
+	};
 
-	// uint to float byte cast -- convert bit-for-bit an uint to a float
+	// PURPOSE: check if a point is inside a defined bound in the XY plane
+	Func<float, float, float, float, float, float, bool> CheckWithinBoundsXY = (x, y, xb1, xb2, yb1, yb2) => {
+		return ((x >= ((xb1 < xb2) ? xb1 : xb2)) && 
+				(x <= ((xb1 > xb2) ? xb1 : xb2)) && 
+				(y >= ((yb1 < yb2) ? yb1 : yb2)) && 
+				(y <= ((yb1 > yb2) ? yb1 : yb2)) );
+	};
+
+	// PURPOSE: uint to float byte cast -- convert bit-for-bit an uint to a float
 	Func<uint, float> ui2fbc = (input) => {
 		return BitConverter.ToSingle(BitConverter.GetBytes(input), 0);
 	};
 
-	// reverse of above
+	// PURPOSE: reverse of above
 	Func<float, uint> f2uibc = (input) => {
 		return (uint)BitConverter.ToInt32(BitConverter.GetBytes(input),0);
 	};
 
+	// PURPOSE: returns a non-string property of an entity
 	Func<IntPtr, string, uint> GetEntProperty = (ptr, propertyName) => {
 		return memory.ReadValue<uint>(ptr + (int)vars.entVarsOffs[propertyName]);
 	};
 
+	// PURPOSE: string-only variant of above
 	// 2838: strings are stored some distance away from the base string address
 	Func<IntPtr, string, string> GetEntNameProperty = (ptr, propertyName) => {
 		if (pStringBasePtr == IntPtr.Zero) return "";
@@ -223,11 +237,18 @@ init // Version specific
 		return memory.ReadString((IntPtr)((uint)memory.ReadPointer(pStringBasePtr) + memory.ReadValue<uint>(ptr + (int)vars.entVarsOffs[propertyName])), 256);
 	};
 
+	// PURPOSE: gets the entity pointer from its index
 	Func<int, IntPtr> GetEntFromIndex = (index) => {
 		if (entListPtr == IntPtr.Zero) return IntPtr.Zero;
 		return memory.ReadPointer(entListPtr) + 804 * index;
 	};
 
+	// PURPOSE: reverse of above
+	Func<IntPtr, int> GetIndexFromEnt = (ptr) => {
+		return (int)((uint)ptr - (uint)memory.ReadPointer(entListPtr)) / 804;
+	};
+
+	// PURPOSE: find an entity using a non-string property of an entity
 	Func<string, uint, IntPtr> FindEntByProperty = (property, value) => {
 		int j = 0;
 		for (j = 0; j < vars.entFindRetries; j++)
@@ -246,6 +267,27 @@ init // Version specific
 		return IntPtr.Zero;
 	};
 
+	// PURPOSE: find an entity with a specific position
+	Func<float, float, float, IntPtr> FindEntByPos = (x, y, z) => {
+		int j = 0;
+		for (j = 0; j < vars.entFindRetries; j++)
+		{		
+			for (int i = 0; i <= 2048; i++)
+			{
+				IntPtr tmp = GetEntFromIndex(i);
+				if (ui2fbc(GetEntProperty(tmp,"xPos")) == x && ui2fbc(GetEntProperty(tmp,"yPos")) == y && ui2fbc(GetEntProperty(tmp,"yPos")) == y)
+				{
+					printtag("ENTFINDING", "Try #" + (j + 1) + ", found entity with position " + x + " " + y + " " + z + " " + " at " + i);
+					return tmp;
+				}
+			}
+			printtag("ENTFINDING", "Try #" + (j + 1) + ", couldn't find entity with position " + x + " " + y + " " + z + "!");
+		}
+		printtag("ENTFINDING", "Couldn't find entity with position " + x + " " + y + " " + z + " after " + j + " tries!");
+		return IntPtr.Zero;
+	};
+
+	// PURPOSE: string-only variant of above
 	Func<string, string, IntPtr> FindEntByNameProperty = (property, value) => {
 		int j = 0;
 		for (j = 0; j < vars.entFindRetries; j++)
@@ -269,8 +311,12 @@ init // Version specific
 	vars.GetEntNameProperty = GetEntNameProperty;
 	vars.GetEntFromIndex = GetEntFromIndex;
 	vars.FindEntByNameProperty = FindEntByNameProperty;
+	vars.GetIndexFromEnt = GetIndexFromEnt;
 	vars.ui2fbc = ui2fbc;
 	vars.f2uibc = f2uibc;
+	vars.DistanceXY = DistanceXY;
+	vars.CheckWithinBoundsXY = CheckWithinBoundsXY;
+	vars.FindEntByNameProperty = FindEntByNameProperty;
 
     vars.map = new StringWatcher(curMapPtr, 10);
     vars.loading = new MemoryWatcher<int>(curLoadingPtr);
@@ -279,9 +325,12 @@ init // Version specific
 	vars.playerY = new MemoryWatcher<float>(plyrYPosPtr);
 	vars.thep1end = new MemoryWatcher<int>(thep1endPtr);
 
-	vars.uplinkgarghealth = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.uplinkVentHealth = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.nihiHP = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.thep3bosshealth = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.uplinkVentHP = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.thep2ValveAngle = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.op4ButtonFramerate = new MemoryWatcher<float>(IntPtr.Zero);
 
     vars.watchList = new MemoryWatcherList () {
         vars.map,
@@ -291,15 +340,16 @@ init // Version specific
 		vars.playerY,
 		vars.thep1end,
 		vars.thep3bosshealth,
-		vars.uplinkgarghealth,
+		vars.uplinkVentHealth,
+		vars.thep2ValveAngle,
+		vars.op4ButtonFramerate,
 		vars.nihiHP,
 		vars.state
     };
 
 	// 2838: this is for special actions that should only be done on game load
+	// i would've used actions to clean this up but they don't allow ref unfortunately
 	Action OnSessionStart = () => {
-
-		// refresh nihi's hp pointer in case his entity index ever changes
 		if (vars.map.Current == "hl_c17")
 		{
 			vars.nihiHP.Reset();
@@ -316,10 +366,24 @@ init // Version specific
 		}
 		else if (vars.map.Current == "uplink")
 		{
-			vars.uplinkgarghealth.Reset();
-			IntPtr uplinkgarghealthPtr = FindEntByNameProperty("classname","monster_gargantua");
-			vars.uplinkgarghealth = new MemoryWatcher<float>((uplinkgarghealthPtr == IntPtr.Zero) ? IntPtr.Zero : (uplinkgarghealthPtr + (int)vars.entVarsOffs["health"]));
-			vars.watchList.Add(vars.uplinkgarghealth);
+			vars.uplinkVentHealth.Reset();
+			IntPtr uplinkVentHealthPtr = FindEntByNameProperty("targetname","garg_vent_break");
+			vars.uplinkVentHealth = new MemoryWatcher<float>((uplinkVentHealthPtr == IntPtr.Zero) ? IntPtr.Zero : (uplinkVentHealthPtr + (int)vars.entVarsOffs["health"]));
+			vars.watchList.Add(vars.uplinkVentHealth);
+		}
+		else if (vars.map.Current == "th_ep2_04")
+		{
+			vars.thep2ValveAngle.Reset();
+			IntPtr thep2ValveAnglePtr = FindEntByPos(761f, -6711f, 741f);
+			vars.thep2ValveAngle = new MemoryWatcher<float>((thep2ValveAnglePtr == IntPtr.Zero) ? IntPtr.Zero : (thep2ValveAnglePtr + (int)vars.entVarsOffs["avelocityZ"]));
+			vars.watchList.Add(vars.thep2ValveAngle);
+		}
+		else if (vars.map.Current == "of6a4b")
+		{
+			IntPtr op4ButtonFrameratePtr = FindEntByNameProperty("target", "endrelay");
+			vars.op4ButtonFramerate.Reset();
+			vars.op4ButtonFramerate = new MemoryWatcher<float>((op4ButtonFrameratePtr == IntPtr.Zero) ? IntPtr.Zero : (op4ButtonFrameratePtr + (int)vars.entVarsOffs["framerate"]));
+			vars.watchList.Add(vars.op4ButtonFramerate);
 		}
 	};
 
@@ -332,15 +396,16 @@ init // Version specific
 
 isLoading // Gametimer
 {
-	return (vars.loading.Current == 1 || vars.state.Current < 2);
+	return (vars.loading.Current == 1); //|| vars.state.Current < 2);
 }
 
 start // Start splitter
 {
 	vars.curTime = 0;
 
-	if ((settings["Uplinkstart"] && vars.playerX.Current >= -2092 && vars.playerX.Current <= -2004 
-	&& vars.playerY.Current >= 524 && vars.playerY.Current <= 720 && vars.map.Current == "uplink")
+	if (settings["Uplinkstart"]  && vars.map.Current == "uplink" 
+	&& (vars.CheckWithinBoundsXY(vars.playerX.Old, vars.playerY.Old, -2160f, -1807f, 1990f, 2500f) &&
+		!vars.CheckWithinBoundsXY(vars.playerX.Current, vars.playerY.Current, -2160f, -1807f, 1990f, 2500f))
 	|| (settings["Autostart"] && vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
 	|| (settings["AutostartILs"] && vars.loading.Current == 0 && vars.loading.Old == 1))
 	{
@@ -361,31 +426,14 @@ split // Auto-splitter
 	if (vars.loading.Current == 1 && vars.loading.Old == 0) 
 		return true;
 	
-	if (settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") return true;
-	if (settings["EP1stop"] && vars.thep1end.Current == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05") return true;
-	if (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old >= 1 && vars.map.Current == "th_ep3_07") return true;
-	if (settings["Uplinkstop"] && vars.uplinkgarghealth.Current == 1000 && vars.uplinkgarghealth.Old == 0 && vars.map.Current == "uplink") return true;
-    
-	/* 
-	if (settings["OP4stop"])
-	{
-		if (current.op4end == 1 && old.op4end == 0 && vars.map.Current == "of6a4b")
-		{
- 	    		return true;
-		}
-	}
-	*/
-
-	/*
-	if (settings["EP2stop"])
-	{
-		if (current.thep2end == 1 && old.thep2end == 0 && vars.map.Current == "th_ep2_04") 
-		{
-            		return true;
-		}
-	}
-	*/
-
+	if (vars.loading.Current == 0
+	&& (settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
+	|| (settings["EP1stop"] && vars.thep1end.Current == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05")
+	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
+	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40 && vars.thep2ValveAngle.Old == 0 && vars.map.Current == "th_ep2_04") 
+	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old >= 1 && vars.map.Current == "th_ep3_07") 
+	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink")) 
+	return true;
 }
 
 update
@@ -395,5 +443,4 @@ update
 	{
 		vars.OnSessionStart();
 	}
-
 }
