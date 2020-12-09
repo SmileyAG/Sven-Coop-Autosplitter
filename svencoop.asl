@@ -4,6 +4,7 @@
 // GAME VERSIONS TESTED: 
 // - Latest Steam version as of 2020/12/09 
 // - The version released on 2017/04/15
+// - 2 versions from 2019 and one from 2016/09/03
 // CREDITS:
 // - 2838 for entity list functions, sigscanning functionality, reworks for all Auto-stops and some Auto-starts
 // - SmileyAG for initial splitter codework
@@ -107,6 +108,12 @@ init // Version specific
         "D9 1D ?? ?? ?? ??",
         "C7 05 ?? ?? ?? ?? 01 00 00 00"); // MOV dword ptr [0x05f44af0],0x1
 
+	// 2838: some versions swap the first 2 instructions
+	curLoadingSig.AddSignature(13,
+	    "D9 1D ?? ?? ?? ??",
+		"68 ?? ?? ?? ??",
+        "C7 05 ?? ?? ?? ?? 01 00 00 00");
+
     curLoadingSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
     var plyrPosSig = new SigScanTarget(22, 
@@ -117,14 +124,10 @@ init // Version specific
 
     plyrPosSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x38;
 
-	var entListSig = new SigScanTarget(14, 
-		"0f ?? ?? ?? ?? ??",
-		"?? ??",
-		"?? ??",
-		"75 ??", 	// MOV EDI,dword ptr [entList]
-		"8B 3D ?? ?? ?? ??",
-		"5?");
-	// 2838: unsure about this sig...
+	var entListSig = new SigScanTarget(8, 
+		"69 ?? 24 03 00 00",
+		"03 05 ?? ?? ?? ??"); // ADD EAX,dword ptr [entlist]
+
     entListSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
 	var pStringBaseSig = new SigScanTarget(2, 
