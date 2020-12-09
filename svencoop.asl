@@ -11,6 +11,19 @@
 // HOW TO USE: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
 // PLEASE REPORT THE PROBLEMS TO EITHER THE ISSUES SECTION IN THE GITHUB REPOSITORY ABOVE OR IN THE SVEN COOP DISCORD
 
+// AUTO-STARTS TRIGGERS:
+// - Uplink: when the player gets teleported outside the starting area
+// - Other games: when the loading int changes from 1 to 0 and the map is correct
+
+// AUTO-ENDS TRIGGERS
+// - HL1: when Nihilanth's hp drops below or equal 0
+// - They Hunger:
+//	+ EP1: when the next think time of the ending multimanager entity goes above 0
+//	+ EP2: when the valve's angular velocity goes from 0 to 40
+//	+ EP3: when the final boss' hp drops below or equal 0
+// - OP4: when the button's animation playback rate goes from 0 to 1
+// - Uplink: when the hp of the vent at the end goes from 1 to 0
+
 state("svencoop")
 {
 }
@@ -399,7 +412,7 @@ split // Auto-splitter
 	|| (settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f && vars.map.Current == "th_ep1_05")
 	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
 	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40 && vars.thep2ValveAngle.Old == 0 && vars.map.Current == "th_ep2_04") 
-	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old >= 1 && vars.map.Current == "th_ep3_07") 
+	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old > 0 && vars.map.Current == "th_ep3_07") 
 	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink")) 
 	return true;
 }
