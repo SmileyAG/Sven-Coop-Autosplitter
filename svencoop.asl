@@ -1,18 +1,18 @@
-//Thanks for supporting the project with code: BenInSweden and Chillu
-//How to use: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
 
-state("svencoop", "v2017") // Offsets
+// SVEN-COOP AUTOSPLITTER
+// VERSION 2.0 - 2020/12/09
+// GAME VERSIONS TESTED: 
+// - Latest Steam version as of 2020/12/09 
+// - The version released on 2017/04/15
+// CREDITS:
+// - 2838 for entity list functions, sigscanning functionality, reworks for all Auto-stops and some Auto-starts
+// - SmileyAG for initial splitter codework
+// - BenInSweden, Chillu and ScriptedSnark for additional code
+// HOW TO USE: https://github.com/SmileyAG/Sven-Coop-Autosplitter/blob/master/README.md
+// PLEASE REPORT THE PROBLEMS TO EITHER THE ISSUES SECTION IN THE GITHUB REPOSITORY ABOVE OR IN THE SVEN COOP DISCORD
+
+state("svencoop")
 {
-	//int loading: "hw.dll", 0x00051588, 0x0;
-	//string10 map: "hw.dll", 0x00060068, 0x0;
-	//float playerX: "hw.dll", 0x0140BB60, 0x70;
-	//float playerY: "hw.dll", 0x0140BB60, 0x74;
-	//float hl1bosshealth: "hw.dll", 0x00D15D10, 0x74, 0x4, 0xACC;
-	//int op4end:
-	//int thep1end: "hw.dll", 0x00002948, 0x398;
-	//int thep2end:
-	//float thep3bosshealth: "hw.dll", 0x00D15E10, 0x398, 0x4, 0xACC;
-	//float uplinkVentHealth: "hw.dll", 0x00D15D90, 0x74, 0x294, 0x7A8;
 }
 
 startup	// Settings
@@ -33,67 +33,53 @@ startup	// Settings
 
 	// 2838: offsets for some elements in entvars typedef
     vars.entVarsOffs = new Dictionary<string, int>() {
-        {"health"               	, 0x1E0},
-        {"xPos"             		, 0x88},
-		{"yPos"             		, 0x8C},
-		{"zPos"             		, 0x90},
-		{"xVel"             		, 0xA0},
-		{"yVel"             		, 0xA4},
-		{"zVel"             		, 0xA8},
-		{"max_health"             	, 0x230},
-		{"target"					, 0x248},
-		{"targetname"				, 0x24C},
-		{"classname"				, 0x80},
-		{"globalname"				, 0x84},
-		{"modelname"				, 0x130},
-		{"framerate"				, 0x1B0},
-		{"privatedata"				, 0x7C},
-		{"avelocityX"				, 0xDC},
-		{"avelocityY"				, 0xE0},
-		{"avelocityZ"				, 0xE4}
+        {"health"               	, 0x1E0},		// HEALTH
+        {"xPos"             		, 0x88},		// X POSITION
+		{"yPos"             		, 0x8C},		// Y POSITION
+		{"zPos"             		, 0x90},		// Z POSITION
+		{"xVel"             		, 0xA0},		// X SPEED
+		{"yVel"             		, 0xA4},		// Y SPEED
+		{"zVel"             		, 0xA8},		// Z SPEED
+		{"max_health"             	, 0x230},		// MAXIMUM ALLOWED HEALTH
+		{"target"					, 0x248},		// TARGET ENTITY
+		{"targetname"				, 0x24C},		// NAME
+		{"classname"				, 0x80},		// CLASS NAME
+		{"globalname"				, 0x84},		// GLOBAL NAME
+		{"modelname"				, 0x130},		// MODEL NAME
+		{"framerate"				, 0x1B0},		// ANIMATION PLAYBACK RATE
+		{"privatedata"				, 0x7C},		// POINTER TO EXTRA ENTITY DATA
+		{"avelocityX"				, 0xDC},		// X ANGULAR SPEED
+		{"avelocityY"				, 0xE0},		// Y ANGULAR SPEED
+		{"avelocityZ"				, 0xE4},		// Z ANGULAR SPEED
+		{"nextthink"				, 0x184}		// NEXT THINK TIME
     };
 
 	// 2838: bools for deciding whether we should print debug info for various parts of the splitter
 	vars.debugSwitches = new Dictionary<string, bool>() {
-		{"VERSIONING"				, true},
-		{"ENTFINDING"				, true},
-		{"SIGSCANNING"				, true},
+		{"ALL"						, true},		// SHOULD WE PRINT ANY DEBUG INFO?
+		{"ENTFINDING"				, true},		// ENTITY FINDING FUNCTIONS
+		{"SIGSCANNING"				, true},		// SIGSCANNING FUNCTIONS
 	};
 
 	// 2838: how many times should we retry finding an entity before stopping?
 	vars.entFindRetries = 3;
+	vars.aslVersion = "2.0 - 2020/12/09";
 }
 
 
 init // Version specific
 {
+	print("=========+++=========");
+	print("SVEN COOP AUTOSPLITTER VERSION " + vars.aslVersion + " by 2838, SmileyAG, ScriptedSnark, BenInSweden and Chillu!");
+	print("!! NOTE !! Auto-stops will only work for players hosting the server due to how the engine handles entities!");
+	print("=========+++=========");
+
 	Action<string, string> printtag = (tag, msg) => {
-		if (vars.debugSwitches[tag])
+		if (vars.debugSwitches[tag] && vars.debugSwitches["ALL"])
 			print("[" + tag + "] " + msg);
 	};
 
 	vars.printtag = printtag;
-
-	byte[] exeMD5HashBytes = new byte[0];
-	using (var md5 = System.Security.Cryptography.MD5.Create())
-	{
-		using (var s = File.Open(modules.First().FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-		{
-			exeMD5HashBytes = md5.ComputeHash(s);
-		}
-	}
-	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
-
-	if (MD5Hash == "0792734230344D7182F9D6FD7783BA05")
-	{
-		version = "v2017";
-		printtag("VERSIONING", "Detected game version: " + version + " - MD5Hash: " + MD5Hash);
-	}
-    else
-	{
-		version = "UNDETECTED";
-		printtag("VERSIONING", "UNDETECTED GAME VERSION - MD5Hash: " + MD5Hash);
-	}
 
     var curMapSig = new SigScanTarget(2,  
         "80 3D ?? ?? ?? ?? 00",     // CMP byte ptr [map],0x0
@@ -110,15 +96,6 @@ init // Version specific
 
     curLoadingSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
-    var nihiHPBaseSig = new SigScanTarget(5,  
-        "83 ?? 38",
-        "??",
-        "68 ?? ?? ?? ??", // PUSH entry_point
-        "E8 ?? ?? ?? ??",
-        "83 C4 08"); 
-
-    nihiHPBaseSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x10; // 2838: this address is always 10 bytes away from the actual one
-
     var plyrPosSig = new SigScanTarget(22, 
 		"C7 05 ?? ?? ?? ?? 01 00 00 00",
 		"E8 ?? ?? ?? ??",
@@ -126,13 +103,6 @@ init // Version specific
 		"68 ?? ?? ?? ??"); 
 
     plyrPosSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr + 0x38;
-
-	var thep1endSig = new SigScanTarget(2, 
-		"F6 05 ?? ?? ?? ?? 02", // MOV byte ptr [thep1end],0x2
-		"74 ??",
-		"68 00 03 00 00"); 
-
-    thep1endSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
 	var entListSig = new SigScanTarget(14, 
 		"0f ?? ?? ?? ?? ??",
@@ -180,10 +150,8 @@ init // Version specific
 
     IntPtr curMapPtr = hwScanner.Scan(curMapSig);
     IntPtr curLoadingPtr = hwScanner.Scan(curLoadingSig);
-    IntPtr nihiHPBasePtr = hwScanner.Scan(nihiHPBaseSig);
 	IntPtr plyrXPosPtr = hwScanner.Scan(plyrPosSig);
 	IntPtr plyrYPosPtr = plyrXPosPtr + 0x4;
-	IntPtr thep1endPtr = hwScanner.Scan(thep1endSig);
 	IntPtr entListPtr = hwScanner.Scan(entListSig);
 	IntPtr pStringBasePtr = hwScanner.Scan(pStringBaseSig);
 	IntPtr statePtr = hwScanner.Scan(stateSig);
@@ -196,15 +164,9 @@ init // Version specific
     printtag("SIGSCANNING", (curLoadingPtr == IntPtr.Zero ? ("Couldn't find loading ptr!") : ("Found loading ptr at 0x" + curLoadingPtr.ToString("X"))));
 	printtag("SIGSCANNING", (statePtr == IntPtr.Zero ? ("Couldn't find state ptr!") : ("Found state ptr at 0x" + statePtr.ToString("X"))));
 	printtag("SIGSCANNING", (plyrXPosPtr == IntPtr.Zero ? ("Couldn't find player's pos ptr!") : ("Found player's pos ptr at 0x" + plyrXPosPtr.ToString("X"))));
-	printtag("SIGSCANNING", (thep1endPtr == IntPtr.Zero ? ("Couldn't find thep1end ptr!") : ("Found thep1end ptr at 0x" + thep1endPtr.ToString("X"))));
-    
+	    
 	printtag("SIGSCANNING", "Signature scanning complete after " + profiler.ElapsedMilliseconds * 0.001f + " seconds");
     profiler.Stop();
-
-	// PURPOSE: find the distance between 2 points in space in the XY plane
-	Func<float, float, float, float, float> DistanceXY = (x, y, x1, y1) => {
-		return (float)(Math.Sqrt((x - x1)*(x - x1) + (y - y1)*(y - y1)));
-	};
 
 	// PURPOSE: check if a point is inside a defined bound in the XY plane
 	Func<float, float, float, float, float, float, bool> CheckWithinBoundsXY = (x, y, xb1, xb2, yb1, yb2) => {
@@ -219,6 +181,7 @@ init // Version specific
 		return BitConverter.ToSingle(BitConverter.GetBytes(input), 0);
 	};
 
+	// RESERVED FOR FUTURE USE
 	// PURPOSE: reverse of above
 	Func<float, uint> f2uibc = (input) => {
 		return (uint)BitConverter.ToInt32(BitConverter.GetBytes(input),0);
@@ -243,6 +206,7 @@ init // Version specific
 		return memory.ReadPointer(entListPtr) + 804 * index;
 	};
 
+	// RESERVED FOR FUTURE USE
 	// PURPOSE: reverse of above
 	Func<IntPtr, int> GetIndexFromEnt = (ptr) => {
 		return (int)((uint)ptr - (uint)memory.ReadPointer(entListPtr)) / 804;
@@ -269,6 +233,7 @@ init // Version specific
 
 	// PURPOSE: find an entity with a specific position
 	Func<float, float, float, IntPtr> FindEntByPos = (x, y, z) => {
+		if (memory.ReadPointer(entListPtr) == IntPtr.Zero) return IntPtr.Zero; 
 		int j = 0;
 		for (j = 0; j < vars.entFindRetries; j++)
 		{		
@@ -289,6 +254,7 @@ init // Version specific
 
 	// PURPOSE: string-only variant of above
 	Func<string, string, IntPtr> FindEntByNameProperty = (property, value) => {
+		if (memory.ReadPointer(entListPtr) == IntPtr.Zero) return IntPtr.Zero; 
 		int j = 0;
 		for (j = 0; j < vars.entFindRetries; j++)
 		{		
@@ -314,7 +280,6 @@ init // Version specific
 	vars.GetIndexFromEnt = GetIndexFromEnt;
 	vars.ui2fbc = ui2fbc;
 	vars.f2uibc = f2uibc;
-	vars.DistanceXY = DistanceXY;
 	vars.CheckWithinBoundsXY = CheckWithinBoundsXY;
 	vars.FindEntByNameProperty = FindEntByNameProperty;
 
@@ -323,7 +288,6 @@ init // Version specific
 	vars.state = new MemoryWatcher<int>(statePtr);
 	vars.playerX = new MemoryWatcher<float>(plyrXPosPtr); 
 	vars.playerY = new MemoryWatcher<float>(plyrYPosPtr);
-	vars.thep1end = new MemoryWatcher<int>(thep1endPtr);
 
 	vars.uplinkVentHealth = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.nihiHP = new MemoryWatcher<float>(IntPtr.Zero);
@@ -331,6 +295,7 @@ init // Version specific
 	vars.uplinkVentHP = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.thep2ValveAngle = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.op4ButtonFramerate = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.thep1MMThinkTime = new MemoryWatcher<float>(IntPtr.Zero);
 
     vars.watchList = new MemoryWatcherList () {
         vars.map,
@@ -338,11 +303,11 @@ init // Version specific
         vars.nihiHP,
 		vars.playerX,
 		vars.playerY,
-		vars.thep1end,
 		vars.thep3bosshealth,
 		vars.uplinkVentHealth,
 		vars.thep2ValveAngle,
 		vars.op4ButtonFramerate,
+		vars.thep1MMThinkTime,
 		vars.nihiHP,
 		vars.state
     };
@@ -385,6 +350,13 @@ init // Version specific
 			vars.op4ButtonFramerate = new MemoryWatcher<float>((op4ButtonFrameratePtr == IntPtr.Zero) ? IntPtr.Zero : (op4ButtonFrameratePtr + (int)vars.entVarsOffs["framerate"]));
 			vars.watchList.Add(vars.op4ButtonFramerate);
 		}
+		else if (vars.map.Current == "th_ep1_05")
+		{
+			IntPtr thep1MMPtr = FindEntByNameProperty("targetname", "stairscene_mngr");
+			vars.thep1MMThinkTime.Reset();
+			vars.thep1MMThinkTime = new MemoryWatcher<float>((thep1MMPtr == IntPtr.Zero) ? IntPtr.Zero : (thep1MMPtr + (int)vars.entVarsOffs["nextthink"]));
+			vars.watchList.Add(vars.thep1MMThinkTime);
+		}
 	};
 
 	// 2838: call onsessionstart now as people might be loading this script mid-run
@@ -408,17 +380,13 @@ start // Start splitter
 		!vars.CheckWithinBoundsXY(vars.playerX.Current, vars.playerY.Current, -2160f, -1807f, 1990f, 2500f))
 	|| (settings["Autostart"] && vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
 	|| (settings["AutostartILs"] && vars.loading.Current == 0 && vars.loading.Old == 1))
-	{
 		return true;
-	}
 }
 
 reset // Reset splitter
 {
 	if (settings["Reset"] && vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
-	{
 		return true;
-	}
 }
 
 split // Auto-splitter
@@ -428,7 +396,7 @@ split // Auto-splitter
 	
 	if (vars.loading.Current == 0
 	&& (settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
-	|| (settings["EP1stop"] && vars.thep1end.Current == 1 && vars.thep1end.Old == 0 && vars.map.Current == "th_ep1_05")
+	|| (settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f && vars.map.Current == "th_ep1_05")
 	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
 	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40 && vars.thep2ValveAngle.Old == 0 && vars.map.Current == "th_ep2_04") 
 	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old >= 1 && vars.map.Current == "th_ep3_07") 
@@ -440,7 +408,5 @@ update
 {   
     vars.watchList.UpdateAll(game);
 	if ((vars.state.Current == 2 && vars.state.Old < 2) || (vars.loading.Current == 0 && vars.loading.Old == 1))
-	{
 		vars.OnSessionStart();
-	}
 }
