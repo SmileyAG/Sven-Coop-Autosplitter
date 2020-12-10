@@ -355,7 +355,7 @@ init // Version specific
 		else if (vars.map.Current == "th_ep2_04")
 		{
 			vars.thep2ValveAngle.Reset();
-			IntPtr thep2ValveAnglePtr = FindEntByPos(761f, -6711f, 741f);
+			IntPtr thep2ValveAnglePtr = FindEntByNameProperty("target", "oil_spouts1_mm");
 			vars.thep2ValveAngle = new MemoryWatcher<float>((thep2ValveAnglePtr == IntPtr.Zero) ? IntPtr.Zero : (thep2ValveAnglePtr + (int)vars.entVarsOffs["avelocityZ"]));
 			vars.watchList.Add(vars.thep2ValveAngle);
 		}
@@ -411,12 +411,12 @@ split // Auto-splitter
 		return true;
 	
 	if (vars.loading.Current == 0
-	&& (settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
+	&& ((settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
 	|| (settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f && vars.map.Current == "th_ep1_05")
 	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
 	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40 && vars.thep2ValveAngle.Old == 0 && vars.map.Current == "th_ep2_04") 
 	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old > 0 && vars.map.Current == "th_ep3_07") 
-	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink")) 
+	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink"))) 
 	return true;
 }
 
