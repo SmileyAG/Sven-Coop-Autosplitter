@@ -373,9 +373,12 @@ init // Version specific
 			vars.thep1MMThinkTime = new MemoryWatcher<float>((thep1MMPtr == IntPtr.Zero) ? IntPtr.Zero : (thep1MMPtr + (int)vars.entVarsOffs["nextthink"]));
 			vars.watchList.Add(vars.thep1MMThinkTime);
 		}
+
+		vars.watchList.UpdateAll(game);
 	};
 
 	// 2838: call onsessionstart now as people might be loading this script mid-run
+	vars.watchList.UpdateAll(game);
 	OnSessionStart();
 
 	vars.OnSessionStart = OnSessionStart;
@@ -414,7 +417,7 @@ split // Auto-splitter
 	&& ((settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
 	|| (settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f && vars.map.Current == "th_ep1_05")
 	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
-	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40 && vars.thep2ValveAngle.Old == 0 && vars.map.Current == "th_ep2_04") 
+	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40f && vars.thep2ValveAngle.Old == 0f && vars.map.Current == "th_ep2_04") 
 	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old > 0 && vars.map.Current == "th_ep3_07") 
 	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink"))) 
 	return true;
