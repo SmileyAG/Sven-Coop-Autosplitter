@@ -1,8 +1,8 @@
 
 // SVEN-COOP AUTOSPLITTER
-// VERSION 1.0 - 2020/12/10
+// VERSION 1.0 - 2020/12/24
 // GAME VERSIONS TESTED: 
-// - Latest Steam version as of 2020/12/10 
+// - Latest Steam version as of 2020/12/24
 // - The version released on 2017/04/15
 // - 2 versions from 2019 and one from 2016/09/03
 // CREDITS:
@@ -77,7 +77,7 @@ startup	// Settings
 
 	// 2838: how many times should we retry finding an entity before stopping?
 	vars.entFindRetries = 3;
-	vars.aslVersion = "1.0 - 2020/12/10";
+	vars.aslVersion = "1.0 - 2020/12/24";
 }
 
 
