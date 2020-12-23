@@ -315,7 +315,6 @@ init // Version specific
 
     vars.watchList = new MemoryWatcherList () {
         vars.map,
-        vars.loading,
         vars.nihiHP,
 		vars.playerX,
 		vars.playerY,
@@ -394,8 +393,8 @@ start // Start splitter
 {
 	vars.curTime = 0;
 
-	if (settings["Uplinkstart"]  && vars.map.Current == "uplink" 
-	&& (vars.CheckWithinBoundsXY(vars.playerX.Old, vars.playerY.Old, -2160f, -1807f, 1990f, 2500f) &&
+	if ((settings["Uplinkstart"]  && vars.map.Current == "uplink" 
+	&&  vars.CheckWithinBoundsXY(vars.playerX.Old, vars.playerY.Old, -2160f, -1807f, 1990f, 2500f) &&
 		!vars.CheckWithinBoundsXY(vars.playerX.Current, vars.playerY.Current, -2160f, -1807f, 1990f, 2500f))
 	|| (settings["Autostart"] && vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
 	|| (settings["AutostartILs"] && vars.loading.Current == 0 && vars.loading.Old == 1))
@@ -410,7 +409,7 @@ reset // Reset splitter
 
 split // Auto-splitter
 {
-	if (vars.loading.Current == 1 && vars.loading.Old == 0) 
+	if (vars.loading.Current == 0 && vars.loading.Old == 1 && !vars.startmaps.Contains(vars.map.Current)) 
 		return true;
 	
 	if (vars.loading.Current == 0
@@ -426,6 +425,9 @@ split // Auto-splitter
 update
 {   
     vars.watchList.UpdateAll(game);
+
+	// 2838: we don't include vars.loading in the watchlist as it must only be updated here
+	vars.loading.Update(game);
 	if ((vars.state.Current == 2 && vars.state.Old < 2) || (vars.loading.Current == 0 && vars.loading.Old == 1))
 		vars.OnSessionStart();
 }
