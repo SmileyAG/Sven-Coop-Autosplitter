@@ -33,13 +33,14 @@ startup	// Settings
   
 	settings.Add("global", false, "Global Settings");
 		settings.Add("Autostart", false, "Enable autostart", "global");
-		settings.Add("Reset", false, "Enable autoreset", "global");   
-	
-	settings.Add("OP4stop", false, "Autostop for Opposing Force");
+		settings.Add("AutostartILs", false, "Enable autostart for ILs", "global");
+		settings.Add("Reset", false, "Enable autoreset", "global");
 	
 	settings.Add("hl", false, "Half-Life");
-		settings.Add("HL1stop", false, "Autostop for Half-Life 1", "hl");
-		settings.Add("HL1door", false, "Autostart Half-Life 1 upon door opening", "hl");
+		settings.Add("HL1stop", false, "Autostop for Half-Life", "hl");
+
+	settings.Add("op4", false, "Opposing Force");
+		settings.Add("OP4stop", false, "Autostop for Opposing Force", "op4");
 	
 	settings.Add("th", false, "They Hunger");
 		settings.Add("EP1stop", false, "Autostop for Episode 1", "th");
@@ -47,11 +48,12 @@ startup	// Settings
 		settings.Add("EP3stop", false, "Autostop for Episode 3", "th");
 	
 	settings.Add("Uplink", false, "Uplink");
-		settings.Add("Uplinkstart", false, "Autostart for Uplink", "Uplink"); 
-		settings.Add("Uplinkstop", false, "Autostop for Uplink", "Uplink");        
-	
-	settings.Add("AutostartILs", false, "Autostart for ILs");
+		settings.Add("Uplinkstart", false, "Autostart for Uplink", "Uplink");
+		settings.Add("Uplinkstop", false, "Autostop for Uplink", "Uplink");
 
+	settings.Add("misc", false, "Misc");
+		settings.Add("HL1door", false, "Autostart for Half-Life upon door opening", "misc");
+	
 	// 2838: offsets for some elements in entvars typedef
     vars.entVarsOffs = new Dictionary<string, int>() {
         {"health"               	, 0x1E0},		// HEALTH
