@@ -1,7 +1,7 @@
 // SVEN-COOP AUTOSPLITTER
 // VERSION 1.1 - 2021/03/28
 // GAME VERSIONS TESTED: 
-// - Latest Steam version as of 2020/03/28
+// - Latest Steam version as of 2021/03/28
 // - The version released on 2017/04/15
 // - 2 versions from 2019 and one from 2016/09/03
 // CREDITS:
@@ -32,14 +32,14 @@ startup	// Settings
 	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
   
 	settings.Add("global", false, "Global Settings");
-		settings.Add("Autostart", false, "Enable Autostart", "global");
-		settings.Add("Reset", false, "Enable AutoReset", "global");   
+		settings.Add("Autostart", false, "Enable autostart", "global");
+		settings.Add("Reset", false, "Enable autoreset", "global");   
 	
 	settings.Add("OP4stop", false, "Autostop for Opposing Force");
 	
 	settings.Add("hl", false, "Half-Life");
-		settings.Add("HL1stop", false, "Autostop for Half-Life", "hl");
-		settings.Add("HL1door", false, "Autostart Half-Life 1 upon Door Opening", "hl");
+		settings.Add("HL1stop", false, "Autostop for Half-Life 1", "hl");
+		settings.Add("HL1door", false, "Autostart Half-Life 1 upon door opening", "hl");
 	
 	settings.Add("th", false, "They Hunger");
 		settings.Add("EP1stop", false, "Autostop for Episode 1", "th");
@@ -84,9 +84,8 @@ startup	// Settings
 
 	// 2838: how many times should we retry finding an entity before stopping?
 	vars.entFindRetries = 3;
-	vars.aslVersion = "1.0 - 2020/12/24";
+	vars.aslVersion = "1.1 - 2021/03/28";
 }
-
 
 init // Version specific
 {
@@ -401,7 +400,6 @@ init // Version specific
 			}
 		}
 
-
 		vars.watchList.UpdateAll(game);
 	};
 
@@ -410,7 +408,6 @@ init // Version specific
 	OnSessionStart();
 
 	vars.OnSessionStart = OnSessionStart;
-
 }
 
 isLoading // Gametimer
@@ -447,7 +444,6 @@ start // Start splitter
 			return loadingChanged && vars.startmaps.Contains(vars.map.Current); 
 		}
 	}
-
 }
 
 reset // Reset splitter
