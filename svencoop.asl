@@ -1,8 +1,7 @@
-
 // SVEN-COOP AUTOSPLITTER
-// VERSION 1.0 - 2020/12/24
+// VERSION 1.1 - 2021/03/28
 // GAME VERSIONS TESTED: 
-// - Latest Steam version as of 2020/12/24
+// - Latest Steam version as of 2020/03/28
 // - The version released on 2017/04/15
 // - 2 versions from 2019 and one from 2016/09/03
 // CREDITS:
@@ -25,24 +24,32 @@
 // - OP4: when the button's animation playback rate goes from 0 to 1
 // - Uplink: when the hp of the vent at the end goes from 1 to 0
 
-state("svencoop")
-{
-}
+state("svencoop") {}
 
 startup	// Settings
 {	
 	vars.startmaps = new List<string>() 
 	{"hl_c01_a1", "of1a1", "ba_security1", "th_ep1_01", "th_ep2_00", "th_ep3_00", "dy_accident1"};
   
-	settings.Add("HL1stop", false, "Autostop for Half-Life");
+	settings.Add("global", false, "Global Settings");
+		settings.Add("Autostart", false, "Enable Autostart", "global");
+		settings.Add("Reset", false, "Enable AutoReset", "global");   
+	
 	settings.Add("OP4stop", false, "Autostop for Opposing Force");
-	settings.Add("EP1stop", false, "Autostop for They Hunger EP1");
-	settings.Add("EP2stop", false, "Autostop for They Hunger EP2");
-	settings.Add("EP3stop", false, "Autostop for They Hunger EP3");
-	settings.Add("Uplinkstart", false, "Autostart for Uplink"); 
-	settings.Add("Uplinkstop", false, "Autostop for Uplink"); 
-	settings.Add("Reset", false, "Autoreset");                              	  	
-	settings.Add("Autostart", false, "Autostart");
+	
+	settings.Add("hl", false, "Half-Life");
+		settings.Add("HL1stop", false, "Autostop for Half-Life", "hl");
+		settings.Add("HL1door", false, "Autostart Half-Life 1 upon Door Opening", "hl");
+	
+	settings.Add("th", false, "They Hunger");
+		settings.Add("EP1stop", false, "Autostop for Episode 1", "th");
+		settings.Add("EP2stop", false, "Autostop for Episode 2", "th");
+		settings.Add("EP3stop", false, "Autostop for Episode 3", "th");
+	
+	settings.Add("Uplink", false, "Uplink");
+		settings.Add("Uplinkstart", false, "Autostart for Uplink", "Uplink"); 
+		settings.Add("Uplinkstop", false, "Autostop for Uplink", "Uplink");        
+	
 	settings.Add("AutostartILs", false, "Autostart for ILs");
 
 	// 2838: offsets for some elements in entvars typedef
@@ -130,7 +137,8 @@ init // Version specific
 
     entListSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
-	var pStringBaseSig = new SigScanTarget(2, 
+	var pStringBaseSig = new SigScanTarget(8, 
+		"8b ?? ?? ?? ?? ??",
 		"03 ?? ?? ?? ?? ??", // ADD EAX,dword ptr [0x06cf03ac]
 		"??",
 		"68 ?? ?? ?? ??",
@@ -153,8 +161,8 @@ init // Version specific
 		"d9 ?? ?? ?? ?? ??"); // FSTP dword ptr [gpGlobals]
 
 	// alternatives, needs 2 sigs but might be more reliable?
-	// D9 1D ?? ?? ?? ?? FF 15 ?? ?? ?? ?? D9 EE
-	// D9 1D ?? ?? ?? ?? ?? FF 15 ?? ?? ?? ?? D9 EE
+	globalSig.AddSignature(2, "D9 1D ?? ?? ?? ?? FF 15 ?? ?? ?? ?? D9 EE");
+	globalSig.AddSignature(2, "D9 1D ?? ?? ?? ?? ?? FF 15 ?? ?? ?? ?? D9 EE");
 
     globalSig.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
 
@@ -312,6 +320,7 @@ init // Version specific
 	vars.thep2ValveAngle = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.op4ButtonFramerate = new MemoryWatcher<float>(IntPtr.Zero);
 	vars.thep1MMThinkTime = new MemoryWatcher<float>(IntPtr.Zero);
+	vars.hl1DoorSpeed = new MemoryWatcher<float>(IntPtr.Zero);
 
     vars.watchList = new MemoryWatcherList () {
         vars.map,
@@ -324,54 +333,74 @@ init // Version specific
 		vars.op4ButtonFramerate,
 		vars.thep1MMThinkTime,
 		vars.nihiHP,
-		vars.state
+		vars.state,
+		vars.hl1DoorSpeed
     };
 
 	// 2838: this is for special actions that should only be done on game load
 	// i would've used actions to clean this up but they don't allow ref unfortunately
 	Action OnSessionStart = () => {
-		if (vars.map.Current == "hl_c17")
+		string map = vars.map.Current;
+		switch (map)
 		{
-			vars.nihiHP.Reset();
-			IntPtr nihiPtr = FindEntByNameProperty("targetname","nihilanth");
-			vars.nihiHP = new MemoryWatcher<float>((nihiPtr == IntPtr.Zero) ? IntPtr.Zero : (nihiPtr + (int)vars.entVarsOffs["health"]));
-			vars.watchList.Add(vars.nihiHP);
+			case "hl_c17":
+			{
+				vars.nihiHP.Reset();
+				IntPtr nihiPtr = FindEntByNameProperty("targetname","nihilanth");
+				vars.nihiHP = new MemoryWatcher<float>((nihiPtr == IntPtr.Zero) ? IntPtr.Zero : (nihiPtr + (int)vars.entVarsOffs["health"]));
+				vars.watchList.Add(vars.nihiHP);
+				break;
+			}
+			case "th_ep3_07":
+			{
+				vars.thep3bosshealth.Reset();
+				IntPtr thep3bossPtr = FindEntByNameProperty("targetname","sheriffs_chppr2");
+				vars.thep3bosshealth = new MemoryWatcher<float>((thep3bossPtr == IntPtr.Zero) ? IntPtr.Zero : (thep3bossPtr + (int)vars.entVarsOffs["health"]));
+				vars.watchList.Add(vars.thep3bosshealth);
+				break;
+			}
+			case "uplink":
+			{
+				vars.uplinkVentHealth.Reset();
+				IntPtr uplinkVentHealthPtr = FindEntByNameProperty("targetname","garg_vent_break");
+				vars.uplinkVentHealth = new MemoryWatcher<float>((uplinkVentHealthPtr == IntPtr.Zero) ? IntPtr.Zero : (uplinkVentHealthPtr + (int)vars.entVarsOffs["health"]));
+				vars.watchList.Add(vars.uplinkVentHealth);
+				break;
+			}
+			case "th_ep2_04":
+			{
+				vars.thep2ValveAngle.Reset();
+				IntPtr thep2ValveAnglePtr = FindEntByNameProperty("target", "oil_spouts1_mm");
+				vars.thep2ValveAngle = new MemoryWatcher<float>((thep2ValveAnglePtr == IntPtr.Zero) ? IntPtr.Zero : (thep2ValveAnglePtr + (int)vars.entVarsOffs["avelocityZ"]));
+				vars.watchList.Add(vars.thep2ValveAngle);
+				break;
+			}
+			case "of6a4b":
+			{
+				IntPtr op4ButtonFrameratePtr = FindEntByNameProperty("target", "endrelay");
+				vars.op4ButtonFramerate.Reset();
+				vars.op4ButtonFramerate = new MemoryWatcher<float>((op4ButtonFrameratePtr == IntPtr.Zero) ? IntPtr.Zero : (op4ButtonFrameratePtr + (int)vars.entVarsOffs["framerate"]));
+				vars.watchList.Add(vars.op4ButtonFramerate);
+				break;
+			}
+			case "th_ep1_05":
+			{
+				IntPtr thep1MMPtr = FindEntByNameProperty("targetname", "stairscene_mngr");
+				vars.thep1MMThinkTime.Reset();
+				vars.thep1MMThinkTime = new MemoryWatcher<float>((thep1MMPtr == IntPtr.Zero) ? IntPtr.Zero : (thep1MMPtr + (int)vars.entVarsOffs["nextthink"]));
+				vars.watchList.Add(vars.thep1MMThinkTime);
+				break;
+			}
+			case "hl_c01_a1":
+			{
+				IntPtr hl1DoorPtr = FindEntByNameProperty("targetname", "doors");
+				vars.hl1DoorSpeed.Reset();
+				vars.hl1DoorSpeed = new MemoryWatcher<float>((hl1DoorPtr == IntPtr.Zero) ? IntPtr.Zero : (hl1DoorPtr + (int)vars.entVarsOffs["zVel"]));
+				vars.watchList.Add(vars.hl1DoorSpeed);
+				break;
+			}
 		}
-		else if (vars.map.Current == "th_ep3_07")
-		{
-			vars.thep3bosshealth.Reset();
-			IntPtr thep3bossPtr = FindEntByNameProperty("targetname","sheriffs_chppr2");
-			vars.thep3bosshealth = new MemoryWatcher<float>((thep3bossPtr == IntPtr.Zero) ? IntPtr.Zero : (thep3bossPtr + (int)vars.entVarsOffs["health"]));
-			vars.watchList.Add(vars.thep3bosshealth);
-		}
-		else if (vars.map.Current == "uplink")
-		{
-			vars.uplinkVentHealth.Reset();
-			IntPtr uplinkVentHealthPtr = FindEntByNameProperty("targetname","garg_vent_break");
-			vars.uplinkVentHealth = new MemoryWatcher<float>((uplinkVentHealthPtr == IntPtr.Zero) ? IntPtr.Zero : (uplinkVentHealthPtr + (int)vars.entVarsOffs["health"]));
-			vars.watchList.Add(vars.uplinkVentHealth);
-		}
-		else if (vars.map.Current == "th_ep2_04")
-		{
-			vars.thep2ValveAngle.Reset();
-			IntPtr thep2ValveAnglePtr = FindEntByNameProperty("target", "oil_spouts1_mm");
-			vars.thep2ValveAngle = new MemoryWatcher<float>((thep2ValveAnglePtr == IntPtr.Zero) ? IntPtr.Zero : (thep2ValveAnglePtr + (int)vars.entVarsOffs["avelocityZ"]));
-			vars.watchList.Add(vars.thep2ValveAngle);
-		}
-		else if (vars.map.Current == "of6a4b")
-		{
-			IntPtr op4ButtonFrameratePtr = FindEntByNameProperty("target", "endrelay");
-			vars.op4ButtonFramerate.Reset();
-			vars.op4ButtonFramerate = new MemoryWatcher<float>((op4ButtonFrameratePtr == IntPtr.Zero) ? IntPtr.Zero : (op4ButtonFrameratePtr + (int)vars.entVarsOffs["framerate"]));
-			vars.watchList.Add(vars.op4ButtonFramerate);
-		}
-		else if (vars.map.Current == "th_ep1_05")
-		{
-			IntPtr thep1MMPtr = FindEntByNameProperty("targetname", "stairscene_mngr");
-			vars.thep1MMThinkTime.Reset();
-			vars.thep1MMThinkTime = new MemoryWatcher<float>((thep1MMPtr == IntPtr.Zero) ? IntPtr.Zero : (thep1MMPtr + (int)vars.entVarsOffs["nextthink"]));
-			vars.watchList.Add(vars.thep1MMThinkTime);
-		}
+
 
 		vars.watchList.UpdateAll(game);
 	};
@@ -393,12 +422,32 @@ start // Start splitter
 {
 	vars.curTime = 0;
 
-	if ((settings["Uplinkstart"]  && vars.map.Current == "uplink" 
-	&&  vars.CheckWithinBoundsXY(vars.playerX.Old, vars.playerY.Old, -2160f, -1807f, 1990f, 2500f) &&
-		!vars.CheckWithinBoundsXY(vars.playerX.Current, vars.playerY.Current, -2160f, -1807f, 1990f, 2500f))
-	|| (settings["Autostart"] && vars.loading.Current == 0 && vars.loading.Old == 1 && vars.startmaps.Contains(vars.map.Current))
-	|| (settings["AutostartILs"] && vars.loading.Current == 0 && vars.loading.Old == 1))
-		return true;
+	if (!settings["Autostart"]) return false;
+
+	bool loadingChanged = vars.loading.Current == 0 && vars.loading.Old == 1;
+
+	if (settings["AutostartILs"]) return loadingChanged;
+
+	switch ((string)vars.map.Current)
+	{
+		case "hl_c01_a1":
+		{
+			if (!(vars.map.Current == "hl_c01_a1" && settings["HL1door"])) 
+				return (loadingChanged && vars.startmaps.Contains(vars.map.Current));
+			else return (vars.hl1DoorSpeed.Old == 0 && vars.hl1DoorSpeed.Current == -40f);
+		}
+		case "uplink":
+		{
+			return (settings["Uplinkstart"] && vars.map.Current == "uplink" 
+			&& vars.CheckWithinBoundsXY(vars.playerX.Old, vars.playerY.Old, -2160f, -1807f, 1990f, 2500f) 
+			&& !vars.CheckWithinBoundsXY(vars.playerX.Current, vars.playerY.Current, -2160f, -1807f, 1990f, 2500f));
+		}
+		default:
+		{
+			return loadingChanged && vars.startmaps.Contains(vars.map.Current); 
+		}
+	}
+
 }
 
 reset // Reset splitter
@@ -409,17 +458,29 @@ reset // Reset splitter
 
 split // Auto-splitter
 {
-	if (vars.loading.Current == 0 && vars.loading.Old == 1 && !vars.startmaps.Contains(vars.map.Current)) 
-		return true;
-	
-	if (vars.loading.Current == 0
-	&& ((settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1 && vars.map.Current == "hl_c17") 
-	|| (settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f && vars.map.Current == "th_ep1_05")
-	|| (settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f && vars.map.Current == "of6a4b")
-	|| (settings["EP2stop"] && vars.thep2ValveAngle.Current == 40f && vars.thep2ValveAngle.Old == 0f && vars.map.Current == "th_ep2_04") 
-	|| (settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old > 0 && vars.map.Current == "th_ep3_07") 
-	|| (settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0 && vars.map.Current == "uplink"))) 
-	return true;
+	if (vars.loading.Current == 0)
+	{
+		if (vars.loading.Old == 1 && !vars.startmaps.Contains(vars.map.Current))
+			return true;
+
+		switch ((string)vars.map.Current)
+		{
+			default:
+				return false;
+			case "hl_c17":
+				return settings["HL1stop"] && vars.nihiHP.Current <= 0 && vars.nihiHP.Old >= 1;
+			case "th_ep1_05":
+				return settings["EP1stop"] && vars.thep1MMThinkTime.Current != 0f && vars.thep1MMThinkTime.Old == 0f;
+			case "of6a4b":
+				return settings["OP4stop"] && vars.op4ButtonFramerate.Current == 1f && vars.op4ButtonFramerate.Old == 0f;
+			case "th_ep2_04":
+				return settings["EP2stop"] && vars.thep2ValveAngle.Current == 40f && vars.thep2ValveAngle.Old == 0f;
+			case "th_ep3_07":
+				return settings["EP3stop"] && vars.thep3bosshealth.Current <= 0 && vars.thep3bosshealth.Old > 0;
+			case "uplink":
+				return settings["Uplinkstop"] && vars.uplinkVentHealth.Current <= 0 && vars.uplinkVentHealth.Old > 0;
+		} 
+	}
 }
 
 update
