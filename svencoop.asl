@@ -421,8 +421,6 @@ start // Start splitter
 {
 	vars.curTime = 0;
 
-	if (!settings["Autostart"]) return false;
-
 	bool loadingChanged = vars.loading.Current == 0 && vars.loading.Old == 1;
 
 	if (settings["AutostartILs"]) return loadingChanged;
